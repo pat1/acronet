@@ -9,7 +9,7 @@
  * of the EUPL v.1.1 license.  See http://ec.europa.eu/idabc/eupl.html for details.
  */ 
 
-#include "Acronet/HAl/hal_interface.h"
+#include "Acronet/HAL/hal_interface.h"
 
 
 #include <asf.h>

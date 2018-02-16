@@ -129,6 +129,8 @@ static void __inline__ internal_HalfDuplex_1_IN(void)
 }
 
 #ifdef SP336_USART2
+static volatile	uint8_t g_spin2 = 0;
+
 static void __inline__ internal_HalfDuplex_2_IN(void)
 {
 	gpio_set_pin_high(SP336_USART2_PIN_TX_ENABLE);
@@ -137,6 +139,8 @@ static void __inline__ internal_HalfDuplex_2_IN(void)
 #endif //SP336_USART2
 
 #ifdef SP336_USART3
+static volatile	uint8_t g_spin3 = 0;
+
 static void __inline__ internal_HalfDuplex_3_IN(void)
 {
 	gpio_set_pin_high(SP336_USART3_PIN_TX_ENABLE);

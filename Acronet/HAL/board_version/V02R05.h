@@ -19,6 +19,10 @@
 #define PCAL9554B_TWI_SPEED       0			//!< TWI data transfer rate
 #define PCAL9554B_TWI_PORT        0
 
+#define MPL3115A2_CHIP_ADDR			0x60				//To keep compiler happy
+#define MPL3115A2_TWI_SPEED       0			//To keep compiler happy
+#define MPL3115A2_TWI_PORT        0			//To keep compiler happy
+
 
 #define SP336_USART0 USARTC0
 #define SP336_USART1 USARTC1

@@ -13,7 +13,7 @@
  */
 
 #include "Acronet/setup.h"
-#include "Acronet/HAl/hal_interface.h"
+#include "Acronet/HAL/hal_interface.h"
 
 
 #include <asf.h>
