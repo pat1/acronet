@@ -571,4 +571,16 @@ const __flash CAP_INTROSPECTION g_cap_introspection[4] = {
 };
 #endif
 
+
+static void dl_periodic_update( void )
+{
+#ifdef SETUP_VP61
+	vp61_periodic();
+#endif
+#ifdef SETUP_T023B_MODBUS
+	t023b_periodic();
+#endif
+}
+
+
 #endif /* DL_INTERNAL_CONFIGS_H_ */

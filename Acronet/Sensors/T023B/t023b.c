@@ -147,18 +147,22 @@ RET_ERROR_CODE t023b_get_data(T023B_DATA * const ps)
 
 bool t023b_Yield( void )
 {
-	
+	static char szBuf[128];
+	static uint8_t idx = 0;
+	while(! MBUS_is_empty(T023B_MBUS_CH))
+	{
+				
+		return true;
+	}
+	return false;
 }
 
-
-void t023b_trigger_reading(void )
+void t023b_periodic(void)
 {
-
 	static const __flash uint8_t cmd[] = {0x15,0x04,0x00,0x00,0x00,0x04,0xF2,0xDD};
 	uint8_t buf[16];
 	memcpy_P(buf,cmd,8);
 	MBUS_issue_cmd(0,buf,8);
-	
 }
 
 RET_ERROR_CODE t023b_reset_data(void)
@@ -179,14 +183,8 @@ RET_ERROR_CODE t023b_Data2String(const T023B_DATA * const st,char * const sz, ui
 	return AC_ERROR_OK;
 }
 
-//bool vp61_Yield(void)
-//{
-	//vp61_process_sample();
-	//return false;
-//}
 
 #ifdef RMAP_SERVICES
-
 
 RET_ERROR_CODE t023b_Data2String_RMAP(	 uint8_t * const subModule
 									,const T023B_DATA * const st

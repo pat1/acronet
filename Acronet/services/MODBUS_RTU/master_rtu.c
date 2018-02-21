@@ -392,6 +392,18 @@ uint8_t MBUS_get_byte(const uint8_t ch_id)
 }
 
 
+RET_ERROR_CODE MBUS_build_dgram(MBUS_CONTROL * const pControl,uint8_t b)
+{
+	const uint8_t status = pControl->status;
+	if (MBUS_STATUS_BEGIN == status)
+	{
+		mb_crc_reset(pControl->crc);
+	}
+	
+	return AC_ERROR_OK;
+}
+
+
 //#ifdef MODBUS_CHAN_0
 //bool MBUS_ch0_is_empty(void)
 //{

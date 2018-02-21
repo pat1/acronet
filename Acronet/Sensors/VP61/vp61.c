@@ -142,7 +142,7 @@ RET_ERROR_CODE vp61_get_data(VP61_DATA * const ps)
 	return AC_ERROR_OK;
 }
 
-void vp61_process_sample(void )
+void vp61_periodic(void )
 {
 	struct adc_config adc_conf;
 	struct adc_channel_config adcch_conf;

@@ -26,6 +26,7 @@ typedef struct
 } T023B_DATA;
 
 RET_ERROR_CODE t023b_init(void);
+void t023b_periodic(void);
 void t023b_enable(void);
 void t023b_disable(void);
 RET_ERROR_CODE t023b_get_data(T023B_DATA * const);

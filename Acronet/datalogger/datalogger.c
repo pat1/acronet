@@ -2886,6 +2886,7 @@ static bool is_task_status_ready(const uint8_t theTask)
 		return theTask == TASK_READY;	
 }
 
+
 void dl_run(void)
 {
 	while(1) {
@@ -2970,9 +2971,7 @@ void dl_run(void)
 
 		if (dl_cycle_lock==false)
 		{
-#ifdef SETUP_VP61
-			vp61_process_sample();
-#endif
+			dl_periodic_update();
 		}
 
 

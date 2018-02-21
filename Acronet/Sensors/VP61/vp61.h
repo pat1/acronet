@@ -32,7 +32,7 @@ RET_ERROR_CODE vp61_get_data(VP61_DATA * const);
 RET_ERROR_CODE vp61_reset_data(void);
 RET_ERROR_CODE vp61_Data2String(const VP61_DATA * const st,char * const sz, uint16_t * len_sz);
 
-void  vp61_process_sample(void);
+void  vp61_periodic(void);
 
 //bool vp61_Yield(void);
 #ifdef RMAP_SERVICES
