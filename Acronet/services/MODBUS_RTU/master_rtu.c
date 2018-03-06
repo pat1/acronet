@@ -20,6 +20,7 @@
 
 #include "Acronet/globals.h"
 #include "Acronet/drivers/SP336/SP336.h"
+#include "Acronet/services/MODBUS_RTU/mb_crc.h"
 #include "Acronet/services/MODBUS_RTU/master_rtu.h"
 
 #ifdef MOD_DIG_0
@@ -40,7 +41,7 @@
 
 #ifdef MODBUS_CHAN_0 
 #define MOD_DIG_0 1
-#define MOD_IDX_0 0
+#define MODBUS_CHAN_0_IDX 0
 #pragma message "MODBUS CH#0 is ON"
 #else
 #pragma message "MODBUS CH#0 is OFF"
@@ -49,7 +50,7 @@
 
 #ifdef MODBUS_CHAN_1
 #define MOD_DIG_1 1
-#define MOD_IDX_1 (0 + MOD_DIG_0)
+#define MODBUS_CHAN_1_IDX (0 + MOD_DIG_0)
 #pragma message "MODBUS CH#1 is ON"
 #else
 #pragma message "MODBUS CH#1 is OFF"
@@ -58,7 +59,7 @@
 
 #ifdef MODBUS_CHAN_2
 #define MOD_DIG_2 1
-#define MOD_IDX_2 (0 + MOD_DIG_0 + MOD_DIG_1)
+#define MODBUS_CHAN_2_IDX (0 + MOD_DIG_0 + MOD_DIG_1)
 #pragma message "MODBUS CH#2 is ON"
 #else
 #pragma message "MODBUS CH#2 is OFF"
@@ -67,7 +68,7 @@
 
 #ifdef MODBUS_CHAN_3
 #define MOD_DIG_3 1
-#define MOD_IDX_3 (0 + MOD_DIG_0 + MOD_DIG_1 + MOD_DIG_2)
+#define MODBUS_CHAN_3_IDX (0 + MOD_DIG_0 + MOD_DIG_1 + MOD_DIG_2)
 #pragma message "MODBUS CH#3 is ON"
 #else
 #pragma message "MODBUS CH#3 is OFF"
@@ -79,13 +80,13 @@
 #define MODBUS_UART_BUF_SIZE 32
 
 #if (MODBUS_CHANNELS == 0)
-#pragma message "MODBUS CH# is 0"
+#pragma message "MODBUS CHANNELS 0"
 #elif (MODBUS_CHANNELS == 1)
-#pragma message "MODBUS CH# is 1"
+#pragma message "MODBUS CHANNELS 1"
 #elif (MODBUS_CHANNELS == 2)
-#pragma message "MODBUS CH# is 2"
+#pragma message "MODBUS CHANNELS 2"
 #elif (MODBUS_CHANNELS == 3)
-#pragma message "MODBUS CH# is 3"
+#pragma message "MODBUS CHANNELS 3"
 #endif
 
 volatile uint8_t buf_usart[MODBUS_CHANNELS][MODBUS_UART_BUF_SIZE];
@@ -114,7 +115,7 @@ volatile uint8_t idx_end_usart[MODBUS_CHANNELS] = {0};
 #pragma message "INFO: Compiling with SP336 mode slew rate"
 #endif
 
-#if defined(SP336_UART2) || defined(SP336_UART3)
+#if defined(SP336_USART2) || defined(SP336_USART3)
 #if   SP336_2_MODE == SP336_2_MODE_LOOPBACK
 #pragma message "INFO: Compiling with SP336_2 mode loopback"
 #elif SP336_2_MODE == SP336_2_MODE_RS485_HALFDUP
@@ -212,79 +213,112 @@ static void cb_usartx(const uint8_t n,const uint8_t c)
 	
 }
 
-#ifdef MBUSPUTFUN_SP336_0
-#error "A symbol MBUSPUTFUN_SP336_0 has been defined elsewhere"
-#else
-#define MBUSPUTFUN_SP336_0
+#ifdef MODBUS_CHAN_0_PUT
+#error "A symbol MODBUS_CHAN_0_PUT has been defined elsewhere"
 #endif
 
-#ifdef MBUSPUTFUN_SP336_1
-#error "A symbol MBUSPUTFUN_SP336_1 has been defined elsewhere"
-#else
-#define MBUSPUTFUN_SP336_1
+#ifdef MODBUS_CHAN_1_PUT
+#error "A symbol MODBUS_CHAN_1_PUT has been defined elsewhere"
 #endif
 
-#ifdef MBUSPUTFUN_SP336_2
-#error "A symbol MBUSPUTFUN_SP336_2 has been defined elsewhere"
-#else
-#define MBUSPUTFUN_SP336_2
+#ifdef MODBUS_CHAN_2_PUT
+#error "A symbol MODBUS_CHAN_2_PUT has been defined elsewhere"
 #endif
 
-#ifdef MBUSPUTFUN_SP336_3
-#error "A symbol MBUSPUTFUN_SP336_3 has been defined elsewhere"
-#else
-#define MBUSPUTFUN_SP336_3
+#ifdef MODBUS_CHAN_3_PUT
+#error "A symbol MODBUS_CHAN_3_PUT has been defined elsewhere"
 #endif
 
 #ifdef MODBUS_CHAN_0
-#undef MBUSPUTFUN_SP336_0
+#undef MODBUS_CHAN_0_PUT
+#undef MODBUS_CHAN_0_CB
+#undef MBUS_CHAN_0_USART
 #if(0==MOD_IDX_0)
-#define MBUSPUTFUN_SP336_0 SP336_0_PutBuffer
+#define MODBUS_CHAN_0_PUT SP336_0_PutBuffer
+#define MODBUS_CHAN_0_CB  SP336_USART0_RX_Vect
+#define MODBUS_CHAN_0_USART SP336_USART0
 #elif(1==MOD_IDX_0)
-#define MBUSPUTFUN_SP336_0 SP336_1_PutBuffer
+#define MODBUS_CHAN_0_PUT SP336_1_PutBuffer
+#define MODBUS_CHAN_0_CB  SP336_USART1_RX_Vect
+#define MODBUS_CHAN_0_USART SP336_USART1
 #elif(2==MOD_IDX_0)
-#define MBUSPUTFUN_SP336_0 SP336_2_PutBuffer
+#define MODBUS_CHAN_0_PUT SP336_2_PutBuffer
+#define MODBUS_CHAN_0_CB  SP336_USART2_RX_Vect
+#define MODBUS_CHAN_0_USART SP336_USART2
 #elif(3==MOD_IDX_0)
-#define MBUSPUTFUN_SP336_0 SP336_3_PutBuffer
+#define MODBUS_CHAN_0_PUT SP336_3_PutBuffer
+#define MODBUS_CHAN_0_CB  SP336_USART3_RX_Vect
+#define MODBUS_CHAN_0_USART SP336_USART3
 #endif
 #endif //MODBUS_CHAN_0
 
 #ifdef MODBUS_CHAN_1
-#undef MBUSPUTFUN_SP336_1
-#if(0==MOD_IDX_1)
-#define MBUSPUTFUN_SP336_1 SP336_0_PutBuffer
-#elif(1==MOD_IDX_1)
-#define MBUSPUTFUN_SP336_1 SP336_1_PutBuffer
-#elif(2==MOD_IDX_1)
-#define MBUSPUTFUN_SP336_1 SP336_2_PutBuffer
-#elif(3==MOD_IDX_1)
-#define MBUSPUTFUN_SP336_1 SP336_3_PutBuffer
+#undef MODBUS_CHAN_1_PUT
+#undef MODBUS_CHAN_1_CB
+#undef MODBUS_CHAN_1_USART
+#if(0==MOD_IDX_0)
+#define MODBUS_CHAN_1_PUT SP336_0_PutBuffer
+#define MODBUS_CHAN_1_CB  SP336_USART0_RX_Vect
+#define MODBUS_CHAN_1_USART SP336_USART0
+#elif(1==MOD_IDX_0)
+#define MODBUS_CHAN_1_PUT SP336_1_PutBuffer
+#define MODBUS_CHAN_1_CB  SP336_USART1_RX_Vect
+#define MODBUS_CHAN_1_USART SP336_USART1
+#elif(2==MOD_IDX_0)
+#define MODBUS_CHAN_1_PUT SP336_2_PutBuffer
+#define MODBUS_CHAN_1_CB  SP336_USART2_RX_Vect
+#define MODBUS_CHAN_1_USART SP336_USART2
+#elif(3==MOD_IDX_0)
+#define MODBUS_CHAN_1_PUT SP336_3_PutBuffer
+#define MODBUS_CHAN_1_CB  SP336_USART3_RX_Vect
+#define MODBUS_CHAN_1_USART SP336_USART3
 #endif
 #endif //MODBUS_CHAN_1
 
 #ifdef MODBUS_CHAN_2
-#undef MBUSPUTFUN_SP336_2
-#if(0==MOD_IDX_2)
-#define MBUSPUTFUN_SP336_2 SP336_0_PutBuffer
-#elif(1==MOD_IDX_2)
-#define MBUSPUTFUN_SP336_2 SP336_1_PutBuffer
-#elif(2==MOD_IDX_2)
-#define MBUSPUTFUN_SP336_2 SP336_2_PutBuffer
-#elif(3==MOD_IDX_2)
-#define MBUSPUTFUN_SP336_2 SP336_3_PutBuffer
+#undef MODBUS_CHAN_2_PUT
+#undef MODBUS_CHAN_2_CB
+#undef MODBUS_CHAN_2_USART
+#if(0==MOD_IDX_0)
+#define MODBUS_CHAN_2_PUT SP336_0_PutBuffer
+#define MODBUS_CHAN_2_CB  SP336_USART0_RX_Vect
+#define MODBUS_CHAN_2_USART SP336_USART0
+#elif(1==MOD_IDX_0)
+#define MODBUS_CHAN_2_PUT SP336_1_PutBuffer
+#define MODBUS_CHAN_2_CB  SP336_USART1_RX_Vect
+#define MODBUS_CHAN_2_USART SP336_USART1
+#elif(2==MOD_IDX_0)
+#define MODBUS_CHAN_2_PUT SP336_2_PutBuffer
+#define MODBUS_CHAN_2_CB  SP336_USART2_RX_Vect
+#define MODBUS_CHAN_2_USART SP336_USART2
+#elif(3==MOD_IDX_0)
+#define MODBUS_CHAN_2_PUT SP336_3_PutBuffer
+#define MODBUS_CHAN_2_CB  SP336_USART3_RX_Vect
+#define MODBUS_CHAN_2_USART SP336_USART3
 #endif
 #endif //MODBUS_CHAN_2
 
+
 #ifdef MODBUS_CHAN_3
-#undef MBUSPUTFUN_SP336_3
-#if(0==MOD_IDX_3)
-#define MBUSPUTFUN_SP336_3 SP336_0_PutBuffer
-#elif(1==MOD_IDX_3)
-#define MBUSPUTFUN_SP336_3 SP336_1_PutBuffer
-#elif(2==MOD_IDX_3)
-#define MBUSPUTFUN_SP336_3 SP336_2_PutBuffer
-#elif(3==MOD_IDX_3)
-#define MBUSPUTFUN_SP336_3 SP336_3_PutBuffer
+#undef MODBUS_CHAN_3_PUT
+#undef MODBUS_CHAN_3_CB
+#undef MODBUS_CHAN_3_USART
+#if(0==MOD_IDX_0)
+#define MODBUS_CHAN_3_PUT SP336_0_PutBuffer
+#define MODBUS_CHAN_3_CB  SP336_USART0_RX_Vect
+#define MODBUS_CHAN_3_USART SP336_USART0
+#elif(1==MOD_IDX_0)
+#define MODBUS_CHAN_3_PUT SP336_1_PutBuffer
+#define MODBUS_CHAN_3_CB  SP336_USART1_RX_Vect
+#define MODBUS_CHAN_3_USART SP336_USART1
+#elif(2==MOD_IDX_0)
+#define MODBUS_CHAN_3_PUT SP336_2_PutBuffer
+#define MODBUS_CHAN_3_CB  SP336_USART2_RX_Vect
+#define MODBUS_CHAN_3_USART SP336_USART2
+#elif(3==MOD_IDX_0)
+#define MODBUS_CHAN_3_PUT SP336_3_PutBuffer
+#define MODBUS_CHAN_3_CB  SP336_USART3_RX_Vect
+#define MODBUS_CHAN_3_USART SP336_USART3
 #endif
 #endif //MODBUS_CHAN_3
 
@@ -294,22 +328,22 @@ RET_ERROR_CODE MBUS_issue_cmd(const uint8_t ch_id,const uint8_t * const pBuf,uin
 {
 #ifdef MODBUS_CHAN_0
 	if(ch_id==MODBUS_CHAN_0) {
-		return MBUSPUTFUN_SP336_0(pBuf,len);
+		return MODBUS_CHAN_0_PUT(pBuf,len);
 	} else
 #endif
 #ifdef MODBUS_CHAN_1
 	if(ch_id==MODBUS_CHAN_1) {
-		return MBUSPUTFUN_SP336_1(pBuf,len);
+		return MODBUS_CHAN_1_PUT(pBuf,len);
 	} else
 #endif
 #ifdef MODBUS_CHAN_2
 	if(ch_id==MODBUS_CHAN_2) {
-		return MBUSPUTFUN_SP336_2(pBuf,len);
+		return MODBUS_CHAN_2_PUT(pBuf,len);
 	} else
 #endif
 #ifdef MODBUS_CHAN_3
 	if(ch_id==MODBUS_CHAN_3) {
-		return MBUSPUTFUN_SP336_3(pBuf,len);
+		return MODBUS_CHAN_3_PUT(pBuf,len);
 	} else
 #endif
 	return AC_UNSUPPORTED;
@@ -320,22 +354,22 @@ bool MBUS_is_empty(const uint8_t ch_id)
 
 #ifdef MODBUS_CHAN_0
 		if(ch_id==MODBUS_CHAN_0) {
-			return is_usartx_empty(MOD_IDX_0);
+			return is_usartx_empty(MODBUS_CHAN_0_IDX);
 		} else
 #endif
 #ifdef MODBUS_CHAN_1
 		if(ch_id==MODBUS_CHAN_1) {
-			return is_usartx_empty(MOD_IDX_1);
+			return is_usartx_empty(MODBUS_CHAN_1_IDX);
 	} else
 #endif
 #ifdef MODBUS_CHAN_2
 		if(ch_id==MODBUS_CHAN_2) {
-			return is_usartx_empty(MOD_IDX_2);
+			return is_usartx_empty(MODBUS_CHAN_2_IDX);
 		} else
 #endif
 #ifdef MODBUS_CHAN_3
 		if(ch_id==MODBUS_CHAN_3) {
-			return is_usartx_empty(MOD_IDX_3);
+			return is_usartx_empty(MODBUS_CHAN_3_IDX);
 		} else
 #endif		
 	return true;
@@ -345,22 +379,22 @@ void MBUS_reset(const uint8_t ch_id)
 {	
 #ifdef MODBUS_CHAN_0
 		if(ch_id==MODBUS_CHAN_0) {
-			reset_usartx_buffer(MOD_IDX_0);
+			reset_usartx_buffer(MODBUS_CHAN_0_IDX);
 		} else
 #endif
 #ifdef MODBUS_CHAN_1
 		if(ch_id==MODBUS_CHAN_1) {
-			reset_usartx_buffer(MOD_IDX_1);
+			reset_usartx_buffer(MODBUS_CHAN_1_IDX);
 		} else
 #endif
 #ifdef MODBUS_CHAN_2
 		if(ch_id==MODBUS_CHAN_2) {
-			reset_usartx_buffer(MOD_IDX_2);
+			reset_usartx_buffer(MODBUS_CHAN_2_IDX);
 		} else
 #endif
 #ifdef MODBUS_CHAN_2
 		if(ch_id==MODBUS_CHAN_3) {
-			reset_usartx_buffer(MOD_IDX_3);
+			reset_usartx_buffer(MODBUS_CHAN_3_IDX);
 		} else
 #endif
 	return;	
@@ -370,22 +404,22 @@ uint8_t MBUS_get_byte(const uint8_t ch_id)
 {
 #ifdef MODBUS_CHAN_0
 		if(ch_id==MODBUS_CHAN_0) {
-			return get_usartx_byte(MOD_IDX_0);
+			return get_usartx_byte(MODBUS_CHAN_0_IDX);
 		} else
 #endif
 #ifdef MODBUS_CHAN_1
 		if(ch_id==MODBUS_CHAN_1) {
-			return get_usartx_byte(MOD_IDX_1);
+			return get_usartx_byte(MODBUS_CHAN_1_IDX);
 		} else
 #endif
 #ifdef MODBUS_CHAN_2
 		if(ch_id==MODBUS_CHAN_2) {
-			return get_usartx_byte(MOD_IDX_2);
+			return get_usartx_byte(MODBUS_CHAN_2_IDX);
 		} else
 #endif
 #ifdef MODBUS_CHAN_3
 		if(ch_id==MODBUS_CHAN_3) {
-			return get_usartx_byte(MOD_IDX_3);
+			return get_usartx_byte(MODBUS_CHAN_3_IDX);
 		} else
 #endif
 	return 0;
@@ -403,6 +437,34 @@ RET_ERROR_CODE MBUS_build_dgram(MBUS_CONTROL * const pControl,uint8_t b)
 	return AC_ERROR_OK;
 }
 
+#ifdef MODBUS_CHAN_0
+ISR(MODBUS_CHAN_0_CB)
+{
+	cb_usartx(MODBUS_CHAN_0_IDX,MODBUS_CHAN_0_USART.DATA);
+}
+#endif
+
+#ifdef MODBUS_CHAN_1
+ISR(MODBUS_CHAN_0_CB)
+{
+	cb_usartx(MODBUS_CHAN_1_IDX,MODBUS_CHAN_1_USART.DATA);
+}
+#endif
+
+
+#ifdef MODBUS_CHAN_2
+ISR(MODBUS_CHAN_2_CB)
+{
+	cb_usartx(MODBUS_CHAN_2_IDX,MODBUS_CHAN_2_USART.DATA);
+}
+#endif
+
+#ifdef MODBUS_CHAN_3
+ISR(MODBUS_CHAN_3_CB)
+{
+	cb_usartx(MODBUS_CHAN_3_IDX,MODBUS_CHAN_3_USART.DATA);
+}
+#endif
 
 //#ifdef MODBUS_CHAN_0
 //bool MBUS_ch0_is_empty(void)

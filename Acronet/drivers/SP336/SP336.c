@@ -272,15 +272,15 @@ RET_ERROR_CODE SP336_3_PutBuffer(const uint8_t * const pBuf,const uint16_t len)
 #endif //SP336_USART2
 
 
-#ifdef SP336_UART0_RX_CB
-
-ISR(SP336_USART0_RX_Vect)
-{
-	SP336_UART0_RX_CB(SP336_USART0.DATA);
-}
-
-
-#endif
+//#ifdef SP336_UART0_RX_CB
+//
+//ISR(SP336_USART0_RX_Vect)
+//{
+	//SP336_UART0_RX_CB(SP336_USART0.DATA);
+//}
+//
+//
+//#endif
 
 //
 //ISR(SP336_USART0_RX_Vect)
