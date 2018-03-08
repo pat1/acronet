@@ -25,35 +25,34 @@ enum {	MBUS_STATUS_BEGIN=0,
 
 typedef struct {
 	uint8_t status;
-	uint8_t crc[2];
-	} MBUS_CONTROL;
+
+	uint8_t addr;
+	uint8_t func;
+
+	uint8_t transmission_crc[2];
+} MBUS_CONTROL;
+
+typedef struct {
+
+	uint8_t addr;
+	uint8_t func;
+	uint8_t data_size;
+	struct {
+		uint8_t byte[255];
+		uint8_t bc;
+		
+	} data;
+	uint8_t crc_hi;
+	uint8_t crc_lo;
+	
+} MBUS_PDU;
 
 bool MBUS_is_empty(const uint8_t ch_id);
 void MBUS_reset(const uint8_t ch_id);
 uint8_t MBUS_get_byte(const uint8_t ch_id);
 
 RET_ERROR_CODE MBUS_issue_cmd(const uint8_t ch_id,const uint8_t * const pBuf,uint16_t len);
-RET_ERROR_CODE MBUS_build_dgram(MBUS_CONTROL * const pControl,uint8_t b);
+RET_ERROR_CODE MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,uint8_t b);
 
-////#ifdef MODBUS_CHAN_0
-//bool MBUS_ch0_is_empty(void);
-//void MBUS_ch0_reset(void);
-//uint8_t MBUS_ch0_get_byte(void);
-////#endif
-////#ifdef MODBUS_CHAN_1
-//bool MBUS_ch1_is_empty(void);
-//void MBUS_ch1_reset(void);
-//uint8_t MBUS_ch1_get_byte(void);
-////#endif
-////#ifdef MODBUS_CHAN_2
-//bool MBUS_ch2_is_empty(void);
-//void MBUS_ch2_reset(void);
-//uint8_t MBUS_ch2_get_byte(void);
-////#endif
-////#ifdef MODBUS_CHAN_3
-//bool MBUS_ch3_is_empty(void);
-//void MBUS_ch3_reset(void);
-//uint8_t MBUS_ch3_get_byte(void);
-////#endif
 
 #endif /* MODBUS_MASTER_RTU_H_ */

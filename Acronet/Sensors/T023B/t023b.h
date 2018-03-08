@@ -13,15 +13,11 @@
 #ifndef T023B_H_
 #define T023B_H_
 
-//#ifndef
-//
-//#endif
 
 typedef struct
 {
-	int16_t			v;
-	//int16_t			v_max;
-	//int16_t			v_min; /* ToDo */
+	int16_t			levl;
+	int16_t			temp;
 	uint8_t			samples;
 } T023B_DATA;
 
@@ -34,9 +30,7 @@ RET_ERROR_CODE t023b_reset_data(void);
 RET_ERROR_CODE t023b_Data2String(const T023B_DATA * const st,char * const sz, uint16_t * len_sz);
 
 bool t023b_Yield( void );
-void t023b_trigger_reading(void);
 
-//bool vp61_Yield(void);
 #ifdef RMAP_SERVICES
 RET_ERROR_CODE t023b_Data2String_RMAP( uint8_t * const subModule ,const T023B_DATA * const st ,const uint32_t timeStamp ,const uint16_t timeWindow ,char * const szTopic ,int16_t * const len_szTopic ,char * const szMessage ,int16_t * const len_szMessage );
 #endif

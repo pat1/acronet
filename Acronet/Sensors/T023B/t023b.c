@@ -18,6 +18,7 @@
 #include "Acronet/globals.h"
 #include "t023b.h"
 #include "Acronet/drivers/SP336/SP336.h"
+#include "Acronet/services/MODBUS_RTU/mb_crc.h"
 #include "Acronet/services/MODBUS_RTU/master_rtu.h"
 
 
@@ -39,16 +40,21 @@ typedef struct
 	int16_t temp;
 } DATAVAL;
 
+static MBUS_CONTROL g_mbc = { .status=MBUS_STATUS_BEGIN };
+static MBUS_PDU g_mbp = {0};
+
 static DATAVAL g_Data[T023B_DATABUFSIZE];
 static uint8_t g_samples = 0;
 
 static volatile uint8_t g_DataIsBusy = 0;
 
-static void t023b_rx(const char c)
-{
-//	usart_putchar(USART_DEBUG,c);
-//	NMEALine_addChar(c);
-}
+
+
+//static void t023b_rx(const char c)
+//{
+////	usart_putchar(USART_DEBUG,c);
+////	NMEALine_addChar(c);
+//}
 
 
 static uint8_t medianInsert_right(DATAVAL val,uint8_t pos)
@@ -140,17 +146,61 @@ void t023b_disable(void)
 
 RET_ERROR_CODE t023b_get_data(T023B_DATA * const ps)
 {
+	ps->levl = g_Data[T023B_MEASUREBUFMID].levl;
+	ps->temp = g_Data[T023B_MEASUREBUFMID].temp;
+	ps->samples = g_samples;
 	
 	
 	return AC_ERROR_OK;
 }
 
+static float interpret_pdu_cdba_float(uint8_t * const pData)
+{
+	typedef union {
+		float fval;
+		uint8_t bval[4];
+	} VV;
+	
+	const register VV v = {	.bval[0] = pData[0] ,
+							.bval[1] = pData[1] ,
+							.bval[2] = pData[3] ,
+							.bval[3] = pData[2] };
+
+	return v.fval;	
+}
+
+static void interpret_pdu(MBUS_PDU * const pPDU)
+{
+	if (g_samples > 254) {
+		return;
+	}
+
+	DATAVAL dv;
+							
+	const float temp = interpret_pdu_cdba_float( &(pPDU->data.byte[0]) );
+	const float levl = interpret_pdu_cdba_float( &(pPDU->data.byte[4]) );
+	
+	dv.temp = (int16_t) (temp*1000);
+	dv.levl = (int16_t) (levl*1000);
+	medianInsert(dv);
+	g_samples++;
+}
+
 bool t023b_Yield( void )
 {
-	static char szBuf[128];
-	static uint8_t idx = 0;
 	while(! MBUS_is_empty(T023B_MBUS_CH))
 	{
+		
+		MBUS_build_dgram(&g_mbc,&g_mbp,MBUS_get_byte(T023B_MBUS_CH));
+		if (MBUS_STATUS_END == g_mbc.status)
+		{
+			const uint16_t crcc = mb_crc_get(g_mbc.transmission_crc);
+			const uint16_t crcp =( (((uint16_t) g_mbp.crc_hi) << 8) | g_mbp.crc_lo );
+			if (crcc == crcp)
+			{
+				interpret_pdu(&g_mbp);
+			}
+		}
 				
 		return true;
 	}
@@ -162,7 +212,7 @@ void t023b_periodic(void)
 	static const __flash uint8_t cmd[] = {0x15,0x04,0x00,0x00,0x00,0x04,0xF2,0xDD};
 	uint8_t buf[16];
 	memcpy_P(buf,cmd,8);
-	MBUS_issue_cmd(0,buf,8);
+	MBUS_issue_cmd(T023B_MBUS_CH,buf,8);
 }
 
 RET_ERROR_CODE t023b_reset_data(void)
