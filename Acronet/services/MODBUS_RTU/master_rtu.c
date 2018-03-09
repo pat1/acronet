@@ -495,6 +495,7 @@ RET_ERROR_CODE MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const p
 #ifdef MODBUS_CHAN_0
 ISR(MODBUS_CHAN_0_CB)
 {
+	usart_putchar(USART_DEBUG,'.');
 	cb_usartx(MODBUS_CHAN_0_IDX,MODBUS_CHAN_0_USART.DATA);
 }
 #endif

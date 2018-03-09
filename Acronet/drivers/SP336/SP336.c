@@ -34,6 +34,46 @@ static volatile	uint8_t g_spin1 = 0;
 
 RET_ERROR_CODE SP336_Init( void )
 {
+#ifdef SP336_USART0_BPS
+	{
+		const usart_rs232_options_t uo = {	.baudrate = SP336_USART0_BPS,
+											.charlength = USART_CHSIZE_8BIT_gc,
+											.paritytype = USART_PMODE_DISABLED_gc,
+											.stopbits = false };
+		SP336_Config(&SP336_USART0,&uo);
+	}
+#endif
+
+#ifdef SP336_USART1_BPS
+	{
+		const usart_rs232_options_t uo = {	.baudrate = SP336_USART1_BPS,
+											.charlength = USART_CHSIZE_8BIT_gc,
+											.paritytype = USART_PMODE_DISABLED_gc,
+											.stopbits = false };
+		SP336_Config(&SP336_USART1,&uo);
+	}
+#endif
+
+#ifdef SP336_USART2_BPS
+	{
+		const usart_rs232_options_t uo = {	.baudrate = SP336_USART2_BPS,
+											.charlength = USART_CHSIZE_8BIT_gc,
+											.paritytype = USART_PMODE_DISABLED_gc,
+											.stopbits = false };
+		SP336_Config(&SP336_USART2,&uo);
+	}
+#endif
+
+#ifdef SP336_USART3_BPS
+	{
+		const usart_rs232_options_t uo = {	.baudrate = SP336_USART3_BPS,
+											.charlength = USART_CHSIZE_8BIT_gc,
+											.paritytype = USART_PMODE_DISABLED_gc,
+											.stopbits = false };
+		SP336_Config(&SP336_USART3,&uo);
+	}
+#endif
+	
 	return AC_ERROR_OK;
 }
 
@@ -181,7 +221,7 @@ static void __inline__ internal_HalfDuplex_3_OUT(void)
 RET_ERROR_CODE SP336_0_PutBuffer(const uint8_t * const pBuf,const uint16_t len)
 {
 	uint16_t i = 0;
-	
+	usart_putchar(USART_DEBUG,'s');
 #if (SP336_MODE==SP336_MODE_RS485_HALFDUP)
 	internal_HalfDuplex_0_IN();
 #endif
@@ -295,12 +335,31 @@ RET_ERROR_CODE SP336_3_PutBuffer(const uint8_t * const pBuf,const uint16_t len)
  	//if(NULL!=cb_usart1) cb_usart1(SP336_USART1.DATA);
 //}
 //
-//ISR(SP336_USART0_TX_Vect)
-//{
-	//g_spin0 = 0;
-//}
-//
-//ISR(SP336_USART1_TX_Vect)
-//{
-	//g_spin1 = 0;
-//}
+
+#if (SP336_MODE==SP336_MODE_RS485_HALFDUP)
+ISR(SP336_USART0_TX_Vect)
+{
+	g_spin0 = 0;
+}
+#endif
+
+#if (SP336_MODE==SP336_MODE_RS485_HALFDUP) || (SP336_MODE_MIXED_HALFDUP)
+ISR(SP336_USART1_TX_Vect)
+{
+	g_spin1 = 0;
+}
+#endif
+
+#if (SP336_2_MODE==SP336_2_MODE_RS485_HALFDUP)
+ISR(SP336_USART2_TX_Vect)
+{
+	g_spin2 = 0;
+}
+#endif
+
+#if (SP336_2_MODE==SP336_2_MODE_RS485_HALFDUP) || (SP336_2_MODE_MIXED_HALFDUP)
+ISR(SP336_USART3_TX_Vect)
+{
+	g_spin3 = 0;
+}
+#endif

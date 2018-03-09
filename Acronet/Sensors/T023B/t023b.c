@@ -190,6 +190,7 @@ bool t023b_Yield( void )
 {
 	while(! MBUS_is_empty(T023B_MBUS_CH))
 	{
+		usart_putchar(USART_DEBUG,'y');
 		
 		MBUS_build_dgram(&g_mbc,&g_mbp,MBUS_get_byte(T023B_MBUS_CH));
 		if (MBUS_STATUS_END == g_mbc.status)
@@ -201,6 +202,7 @@ bool t023b_Yield( void )
 				interpret_pdu(&g_mbp);
 			}
 		}
+		usart_putchar(USART_DEBUG,'Y');
 				
 		return true;
 	}
@@ -209,10 +211,12 @@ bool t023b_Yield( void )
 
 void t023b_periodic(void)
 {
+	usart_putchar(USART_DEBUG,'p');
 	static const __flash uint8_t cmd[] = {0x15,0x04,0x00,0x00,0x00,0x04,0xF2,0xDD};
 	uint8_t buf[16];
 	memcpy_P(buf,cmd,8);
 	MBUS_issue_cmd(T023B_MBUS_CH,buf,8);
+	usart_putchar(USART_DEBUG,'P');
 }
 
 RET_ERROR_CODE t023b_reset_data(void)
@@ -225,12 +229,12 @@ RET_ERROR_CODE t023b_Data2String(const T023B_DATA * const st,char * const sz, ui
 {
 	const uint16_t samples = st->samples;
 	
-//	uint16_t len = snprintf_P(sz,*len_sz,PSTR("&V=%u&Vmax=%u&Vmin=%u&nSmp=%u"),st->v,st->v_max,st->v_min,samples);
+	uint16_t len = snprintf_P(sz,*len_sz,PSTR("&ll=%u&lt=%u&nSmp=%u"),st->levl,st->temp,samples);
 	
-//	const RET_ERROR_CODE e = (len < *len_sz) ? AC_ERROR_OK : AC_BUFFER_OVERFLOW;
-//	*len_sz = len;
-//	return e;
-	return AC_ERROR_OK;
+	const RET_ERROR_CODE e = (len < *len_sz) ? AC_ERROR_OK : AC_BUFFER_OVERFLOW;
+	*len_sz = len;
+	return e;
+//	return AC_ERROR_OK;
 }
 
 

@@ -34,6 +34,7 @@
 #include "Acronet/drivers/PCAL9535A/PCAL9535A.h"
 #include "Acronet/drivers/Voltmeter/voltmeter.h"
 #include "Acronet/drivers/PowerSwitch/powerswitch.h"
+#include "Acronet/drivers/SP336/SP336.h"
 
 #include "Acronet/datalogger/datalogger.h"
 //#include "utils/AnyType.h"
@@ -491,6 +492,11 @@ RET_ERROR_CODE dl_init( void )
 
 	//CAP_init(g_cap_introspection,sizeof(g_cap_introspection)/sizeof(g_cap_introspection[0]));
 
+/*********************************************************************************/
+//	SP336 Init
+/*********************************************************************************/
+
+	SP336_Init();
 
 /*********************************************************************************/
 //	Module Init 

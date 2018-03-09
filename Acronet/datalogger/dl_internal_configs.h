@@ -150,6 +150,9 @@ RAINGAUGE_DATA raingauge_data[1];
 #ifdef SETUP_PANEL
 	PANEL_DATA panel_data;
 #endif
+#ifdef SETUP_T023B_MODBUS
+	T023B_DATA t023b_data;
+#endif
 } __attribute__((packed)) DB_RECORD;
 
 /* Module interface */
@@ -452,8 +455,21 @@ static const __flash MODULE_INTERFACE iface_module[] = {
 																#endif //RMAP_SERVICES
 															},
 
-#endif //SETUP_GPIO2LOG
+#endif //SETUP_PANEL
 
+#ifdef SETUP_T023B_MODBUS
+															{	t023b_init,
+																NULL,
+																NULL,
+																NULL,
+																t023b_reset_data,
+																( GETDATA )		t023b_get_data,
+																( DATA2STRING )	t023b_Data2String,
+#ifdef RMAP_SERVICES
+																NULL
+#endif //RMAP_SERVICES
+															},
+#endif
 };
 	
 
@@ -524,6 +540,11 @@ static inline size_t __attribute__((const)) selectDataSource( const uint8_t idx 
 #ifdef SETUP_PANEL
 		case PANEL:
 		return offsetof(DB_RECORD,panel_data);
+		break;
+#endif
+#ifdef SETUP_T023B_MODBUS
+		case T023B_MODBUS:
+		return offsetof(DB_RECORD,t023b_data);
 		break;
 #endif
 
