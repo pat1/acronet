@@ -12,14 +12,14 @@
 
 
 //Pluviometro riscaldato
-//Nivometro T023B Modbus
+//Nivometro T023 Modbus
 
 #ifndef MONESI_H_
 #define MONESI_H_
 
 
 #define SETUP_RAINGAUGE
-#define SETUP_T023B_MODBUS
+#define SETUP_T023_MODBUS
 
 #define MODBUS_CHAN_0	0
 //#define MODBUS_CHAN_1	1
@@ -31,7 +31,7 @@
 //#define SP336_USART2_BPS	9600
 //#define SP336_USART3_BPS	9600
 
-#define T023B_MBUS_CH				MODBUS_CHAN_0
+#define T023_MBUS_CH				MODBUS_CHAN_0
 
 #define SP336_MODE					SP336_MODE_RS485_HALFDUP
 #define SP336_2_MODE				SP336_2_MODE_HIGHZ

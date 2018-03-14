@@ -39,8 +39,8 @@
 #ifdef SETUP_GPIO2LOG
 #include "Acronet/Sensors/GPIO2LOG/gpio2log.h"
 #endif
-#ifdef SETUP_T023B_MODBUS
-#include "Acronet/Sensors/SIAP_MICROS/t023/t023b.h"
+#ifdef SETUP_T023_MODBUS
+#include "Acronet/Sensors/SIAP_MICROS/t023/t023.h"
 #endif
 
 #if defined (SETUP_CAP_RAIN) || defined (SETUP_CAP_LEVEL)
@@ -96,8 +96,8 @@ typedef enum {
 #ifdef SETUP_PANEL
 	PANEL,
 #endif
-#ifdef SETUP_T023B_MODBUS
-	T023B_MODBUS,
+#ifdef SETUP_T023_MODBUS
+	T023_MODBUS,
 #endif
 	DL_MODULE_END
 } MODULE_ID;
@@ -150,8 +150,8 @@ RAINGAUGE_DATA raingauge_data[1];
 #ifdef SETUP_PANEL
 	PANEL_DATA panel_data;
 #endif
-#ifdef SETUP_T023B_MODBUS
-	T023B_DATA t023b_data;
+#ifdef SETUP_T023_MODBUS
+	T023_DATA t023_data;
 #endif
 } __attribute__((packed)) DB_RECORD;
 
@@ -457,14 +457,14 @@ static const __flash MODULE_INTERFACE iface_module[] = {
 
 #endif //SETUP_PANEL
 
-#ifdef SETUP_T023B_MODBUS
-															{	t023b_init,
+#ifdef SETUP_T023_MODBUS
+															{	t023_init,
 																NULL,
 																NULL,
-																t023b_Yield,
-																t023b_reset_data,
-																( GETDATA )		t023b_get_data,
-																( DATA2STRING )	t023b_Data2String,
+																t023_Yield,
+																t023_reset_data,
+																( GETDATA )		t023_get_data,
+																( DATA2STRING )	t023_Data2String,
 #ifdef RMAP_SERVICES
 																NULL
 #endif //RMAP_SERVICES
@@ -542,9 +542,9 @@ static inline size_t __attribute__((const)) selectDataSource( const uint8_t idx 
 		return offsetof(DB_RECORD,panel_data);
 		break;
 #endif
-#ifdef SETUP_T023B_MODBUS
-		case T023B_MODBUS:
-		return offsetof(DB_RECORD,t023b_data);
+#ifdef SETUP_T023_MODBUS
+		case T023_MODBUS:
+		return offsetof(DB_RECORD,t023_data);
 		break;
 #endif
 
@@ -598,8 +598,8 @@ static void dl_periodic_update( void )
 #ifdef SETUP_VP61
 	vp61_periodic();
 #endif
-#ifdef SETUP_T023B_MODBUS
-	t023b_periodic();
+#ifdef SETUP_T023_MODBUS
+	t023_periodic();
 #endif
 }
 

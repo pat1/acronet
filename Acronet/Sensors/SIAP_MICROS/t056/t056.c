@@ -16,23 +16,23 @@
 #include <stdio.h>
 #include "Acronet/HAL/hal_interface.h"
 #include "Acronet/globals.h"
-#include "t023b.h"
+#include "t056.h"
 #include "Acronet/drivers/SP336/SP336.h"
 #include "Acronet/services/MODBUS_RTU/mb_crc.h"
 #include "Acronet/services/MODBUS_RTU/master_rtu.h"
 
 
 
-#if !defined(T023B_MBUS_CH)
+#if !defined(T056_MBUS_CH)
 #pragma message "[!!! PROJECT WARNING !!!] in file " __FILE__\
-" SYMBOL T023B_MBUS_CH not defined, using default just to compile, your project may not work as aspected"
-#define T023B_MBUS_CH	0
+" SYMBOL T056_MBUS_CH not defined, using default just to compile, your project may not work as aspected"
+#define T056_MBUS_CH	0
 #endif
 
 
-#define T023B_MEASURES_NUMBER	32
-#define T023B_DATABUFSIZE		17	// Raw measures buffer size. On this measures array statistics are done.
-#define T023B_MEASUREBUFMID		8   //
+#define T056_MEASURES_NUMBER	32
+#define T056_DATABUFSIZE		17	// Raw measures buffer size. On this measures array statistics are done.
+#define T056_MEASUREBUFMID		8   //
 
 typedef struct  
 {
@@ -43,14 +43,14 @@ typedef struct
 static MBUS_CONTROL g_mbc = { .status=MBUS_STATUS_BEGIN };
 static MBUS_PDU g_mbp = {0};
 
-static DATAVAL g_Data[T023B_DATABUFSIZE];
+static DATAVAL g_Data[T056_DATABUFSIZE];
 static uint8_t g_samples = 0;
 
 static volatile uint8_t g_DataIsBusy = 0;
 
 
 
-//static void t023b_rx(const char c)
+//static void t056_rx(const char c)
 //{
 ////	usart_putchar(USART_DEBUG,c);
 ////	NMEALine_addChar(c);
@@ -60,7 +60,7 @@ static volatile uint8_t g_DataIsBusy = 0;
 static uint8_t medianInsert_right(DATAVAL val,uint8_t pos)
 {
 	DATAVAL v0 = val;
-	for(uint8_t idx=pos;idx<T023B_DATABUFSIZE;++idx)
+	for(uint8_t idx=pos;idx<T056_DATABUFSIZE;++idx)
 	{
 		const DATAVAL a = g_Data[idx];
 		const DATAVAL v1 = (a.levl==0)?v0:a;
@@ -88,13 +88,13 @@ static uint8_t medianInsert_left(DATAVAL val,uint8_t pos)
 static uint8_t medianInsert(const DATAVAL val)
 {
 	uint8_t idx;
-	const DATAVAL vm = g_Data[T023B_MEASUREBUFMID];
+	const DATAVAL vm = g_Data[T056_MEASUREBUFMID];
 	
 	//if (vm==0) {
 	//return medianInsert_right(val,0);
 	//} else
 	if (val.levl<vm.levl) {
-		for(idx=T023B_MEASUREBUFMID;idx>0;--idx) {
+		for(idx=T056_MEASUREBUFMID;idx>0;--idx) {
 			const DATAVAL vr = g_Data[idx];
 			const DATAVAL vl = g_Data[idx-1];
 			if ((val.levl>=vl.levl) && (val.levl<=vr.levl)) {
@@ -105,7 +105,7 @@ static uint8_t medianInsert(const DATAVAL val)
 		return medianInsert_right(val,0);
 
 		} else if(val.levl>vm.levl)	{
-		for(idx=T023B_MEASUREBUFMID;idx<T023B_DATABUFSIZE-1;++idx) {
+		for(idx=T056_MEASUREBUFMID;idx<T056_DATABUFSIZE-1;++idx) {
 			const DATAVAL vl = g_Data[idx];
 			const DATAVAL vr = g_Data[idx+1];
 			if ((val.levl>=vl.levl) && (val.levl<=vr.levl)) {
@@ -113,10 +113,10 @@ static uint8_t medianInsert(const DATAVAL val)
 			}
 		}
 		//New Maximum
-		return medianInsert_left(val,T023B_DATABUFSIZE-1);
+		return medianInsert_left(val,T056_DATABUFSIZE-1);
 		} else if (val.levl==vm.levl) {
-		medianInsert_right(val,T023B_MEASUREBUFMID);
-		medianInsert_left(val,T023B_MEASUREBUFMID);
+		medianInsert_right(val,T056_MEASUREBUFMID);
+		medianInsert_left(val,T056_MEASUREBUFMID);
 	}
 
 	return 0;
@@ -124,14 +124,14 @@ static uint8_t medianInsert(const DATAVAL val)
 
 
 
-RET_ERROR_CODE t023b_init(void)
+RET_ERROR_CODE t056_init(void)
 {
-	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"T023B Init");
+	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"T056 Init");
 
 	return AC_ERROR_OK;
 }
 
-void t023b_enable(void)
+void t056_enable(void)
 {
 	//usart_set_rx_interrupt_level(SP336_USART0,USART_INT_LVL_LO);
 	//usart_rx_enable(SP336_USART0);
@@ -139,15 +139,15 @@ void t023b_enable(void)
 	/* ToDo */
 }
 
-void t023b_disable(void)
+void t056_disable(void)
 {
 	/* ToDo */
 }
 
-RET_ERROR_CODE t023b_get_data(T023B_DATA * const ps)
+RET_ERROR_CODE t056_get_data(T056_DATA * const ps)
 {
-	ps->levl = g_Data[T023B_MEASUREBUFMID].levl;
-	ps->temp = g_Data[T023B_MEASUREBUFMID].temp;
+	ps->levl = g_Data[T056_MEASUREBUFMID].levl;
+	ps->temp = g_Data[T056_MEASUREBUFMID].temp;
 	ps->samples = g_samples;
 	
 	
@@ -197,12 +197,12 @@ static void interpret_pdu(MBUS_PDU * const pPDU)
 	g_samples++;
 }
 
-bool t023b_Yield( void )
+bool t056_Yield( void )
 {
-	while(! MBUS_is_empty(T023B_MBUS_CH))
+	while(! MBUS_is_empty(T056_MBUS_CH))
 	{
 		
-		MBUS_build_dgram(&g_mbc,&g_mbp,MBUS_get_byte(T023B_MBUS_CH));
+		MBUS_build_dgram(&g_mbc,&g_mbp,MBUS_get_byte(T056_MBUS_CH));
 		if (MBUS_STATUS_END == g_mbc.status)
 		{
 			usart_putchar(USART_DEBUG,'y');
@@ -227,7 +227,7 @@ bool t023b_Yield( void )
 	return false;
 }
 
-void t023b_periodic(void)
+void t056_periodic(void)
 {
 	static const __flash uint8_t cmd[] = {0x15,0x04,0x00,0x00,0x00,0x04,0xF2,0xDD};
 
@@ -239,16 +239,16 @@ void t023b_periodic(void)
 	usart_putchar(USART_DEBUG,'p');
 	uint8_t buf[16];
 	memcpy_P(buf,cmd,8);
-	MBUS_issue_cmd(T023B_MBUS_CH,buf,8);
+	MBUS_issue_cmd(T056_MBUS_CH,buf,8);
 }
 
-RET_ERROR_CODE t023b_reset_data(void)
+RET_ERROR_CODE t056_reset_data(void)
 {
 	g_samples = 0;
 	return AC_ERROR_OK;
 }
 
-RET_ERROR_CODE t023b_Data2String(const T023B_DATA * const st,char * const sz, uint16_t * const len_sz)
+RET_ERROR_CODE t056_Data2String(const T056_DATA * const st,char * const sz, uint16_t * const len_sz)
 {
 	const uint16_t samples = st->samples;
 	
@@ -263,8 +263,8 @@ RET_ERROR_CODE t023b_Data2String(const T023B_DATA * const st,char * const sz, ui
 
 #ifdef RMAP_SERVICES
 
-RET_ERROR_CODE t023b_Data2String_RMAP(	 uint8_t * const subModule
-									,const T023B_DATA * const st
+RET_ERROR_CODE t056_Data2String_RMAP(	 uint8_t * const subModule
+									,const T056_DATA * const st
 									,const uint32_t timeStamp
 									,const uint16_t timeWindow
 									,char * const szTopic
