@@ -40,7 +40,7 @@
 #include "Acronet/Sensors/GPIO2LOG/gpio2log.h"
 #endif
 #ifdef SETUP_T023B_MODBUS
-#include "Acronet/Sensors/T023B/t023b.h"
+#include "Acronet/Sensors/SIAP_MICROS/t023/t023b.h"
 #endif
 
 #if defined (SETUP_CAP_RAIN) || defined (SETUP_CAP_LEVEL)
@@ -461,7 +461,7 @@ static const __flash MODULE_INTERFACE iface_module[] = {
 															{	t023b_init,
 																NULL,
 																NULL,
-																NULL,
+																t023b_Yield,
 																t023b_reset_data,
 																( GETDATA )		t023b_get_data,
 																( DATA2STRING )	t023b_Data2String,

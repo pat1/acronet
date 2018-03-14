@@ -25,7 +25,7 @@ static inline void mb_crc_reset(uint8_t regcrc[2])
 
 static inline uint16_t mb_crc_get(uint8_t regcrc[2])
 {
-	return ( (((uint16_t) regcrc[0]) << 8) | regcrc[1] );
+	return ( (((uint16_t) regcrc[1]) << 8) | regcrc[0] );
 }
 
 

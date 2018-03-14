@@ -154,17 +154,17 @@ RET_ERROR_CODE t023b_get_data(T023B_DATA * const ps)
 	return AC_ERROR_OK;
 }
 
-static float interpret_pdu_cdba_float(uint8_t * const pData)
+static float interpret_pdu_cdab_float(uint8_t * const pData)
 {
 	typedef union {
 		float fval;
 		uint8_t bval[4];
 	} VV;
 	
-	const register VV v = {	.bval[0] = pData[0] ,
-							.bval[1] = pData[1] ,
+	const register VV v = {	.bval[3] = pData[2] ,
 							.bval[2] = pData[3] ,
-							.bval[3] = pData[2] };
+							.bval[1] = pData[0] ,
+							.bval[0] = pData[1] };
 
 	return v.fval;	
 }
@@ -177,11 +177,22 @@ static void interpret_pdu(MBUS_PDU * const pPDU)
 
 	DATAVAL dv;
 							
-	const float temp = interpret_pdu_cdba_float( &(pPDU->data.byte[0]) );
-	const float levl = interpret_pdu_cdba_float( &(pPDU->data.byte[4]) );
+	const float temp = interpret_pdu_cdab_float( &(pPDU->data.byte[0]) );
+	const float levl = interpret_pdu_cdab_float( &(pPDU->data.byte[4]) );
 	
-	dv.temp = (int16_t) (temp*1000);
-	dv.levl = (int16_t) (levl*1000);
+	if(temp==-9999.0F) {
+		debug_string_1P(NORMAL,PSTR("[WARNING] Invalid value"));
+		return;
+	} else {
+		dv.temp = (int16_t) (temp*10);
+		dv.levl = (int16_t) (levl*1000);
+	}
+	
+	
+	char szBUF[64];
+	sprintf_P(szBUF,PSTR(" (%d , %d)\r\n"),dv.levl,dv.temp);
+	debug_string(NORMAL,szBUF,RAM_STRING);
+
 	medianInsert(dv);
 	g_samples++;
 }
@@ -190,19 +201,26 @@ bool t023b_Yield( void )
 {
 	while(! MBUS_is_empty(T023B_MBUS_CH))
 	{
-		usart_putchar(USART_DEBUG,'y');
 		
 		MBUS_build_dgram(&g_mbc,&g_mbp,MBUS_get_byte(T023B_MBUS_CH));
 		if (MBUS_STATUS_END == g_mbc.status)
 		{
+			usart_putchar(USART_DEBUG,'y');
+
 			const uint16_t crcc = mb_crc_get(g_mbc.transmission_crc);
 			const uint16_t crcp =( (((uint16_t) g_mbp.crc_hi) << 8) | g_mbp.crc_lo );
 			if (crcc == crcp)
 			{
+				usart_putchar(USART_DEBUG,'u');
 				interpret_pdu(&g_mbp);
+			} else {
+				char szBUF[64];
+				sprintf_P(szBUF,PSTR("%04X != %04X\r\n"),crcc,crcp);
+				debug_string(NORMAL,szBUF,RAM_STRING);
 			}
+			g_mbc.status = MBUS_STATUS_BEGIN;
 		}
-		usart_putchar(USART_DEBUG,'Y');
+//		usart_putchar(USART_DEBUG,'Y');
 				
 		return true;
 	}
@@ -211,12 +229,17 @@ bool t023b_Yield( void )
 
 void t023b_periodic(void)
 {
-	usart_putchar(USART_DEBUG,'p');
 	static const __flash uint8_t cmd[] = {0x15,0x04,0x00,0x00,0x00,0x04,0xF2,0xDD};
+
+	if (g_mbc.status!=MBUS_STATUS_BEGIN )
+	{
+		usart_putchar(USART_DEBUG,'P');
+		return;
+	}
+	usart_putchar(USART_DEBUG,'p');
 	uint8_t buf[16];
 	memcpy_P(buf,cmd,8);
 	MBUS_issue_cmd(T023B_MBUS_CH,buf,8);
-	usart_putchar(USART_DEBUG,'P');
 }
 
 RET_ERROR_CODE t023b_reset_data(void)
