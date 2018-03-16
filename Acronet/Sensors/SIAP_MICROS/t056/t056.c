@@ -37,7 +37,6 @@
 typedef struct  
 {
 	int16_t levl;
-	int16_t temp;
 } DATAVAL;
 
 static MBUS_CONTROL g_mbc = { .status=MBUS_STATUS_BEGIN };
@@ -147,7 +146,7 @@ void t056_disable(void)
 RET_ERROR_CODE t056_get_data(T056_DATA * const ps)
 {
 	ps->levl = g_Data[T056_MEASUREBUFMID].levl;
-	ps->temp = g_Data[T056_MEASUREBUFMID].temp;
+//	ps->temp = g_Data[T056_MEASUREBUFMID].temp;
 	ps->samples = g_samples;
 	
 	
@@ -177,20 +176,18 @@ static void interpret_pdu(MBUS_PDU * const pPDU)
 
 	DATAVAL dv;
 							
-	const float temp = interpret_pdu_cdab_float( &(pPDU->data.byte[0]) );
-	const float levl = interpret_pdu_cdab_float( &(pPDU->data.byte[4]) );
+	const float levl = interpret_pdu_cdab_float( &(pPDU->data.byte[0]) );
 	
-	if(temp==-9999.0F) {
+	if(levl==-9999.0F) {
 		debug_string_1P(NORMAL,PSTR("[WARNING] Invalid value"));
 		return;
 	} else {
-		dv.temp = (int16_t) (temp*10);
-		dv.levl = (int16_t) (levl*1000);
+		dv.levl = (int16_t) (levl*10);
 	}
 	
 	
 	char szBUF[64];
-	sprintf_P(szBUF,PSTR(" (%d , %d)\r\n"),dv.levl,dv.temp);
+	sprintf_P(szBUF,PSTR(" (%d)\r\n"),dv.levl);
 	debug_string(NORMAL,szBUF,RAM_STRING);
 
 	medianInsert(dv);
@@ -229,7 +226,7 @@ bool t056_Yield( void )
 
 void t056_periodic(void)
 {
-	static const __flash uint8_t cmd[] = {0x15,0x04,0x00,0x00,0x00,0x04,0xF2,0xDD};
+	static const __flash uint8_t cmd[] = {0x07,0x04,0x00,0x04,0x00,0x02,0x30,0x6C};
 
 	if (g_mbc.status!=MBUS_STATUS_BEGIN )
 	{
@@ -252,7 +249,7 @@ RET_ERROR_CODE t056_Data2String(const T056_DATA * const st,char * const sz, uint
 {
 	const uint16_t samples = st->samples;
 	
-	uint16_t len = snprintf_P(sz,*len_sz,PSTR("&ll=%u&lt=%u&nSmp=%u"),st->levl,st->temp,samples);
+	uint16_t len = snprintf_P(sz,*len_sz,PSTR("&RN=%u&nSmp=%u"),st->levl,samples);
 	
 	const RET_ERROR_CODE e = (len < *len_sz) ? AC_ERROR_OK : AC_BUFFER_OVERFLOW;
 	*len_sz = len;
