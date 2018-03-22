@@ -36,9 +36,6 @@
 #undef MOD_DIG_3
 #endif
 
-#define xstr(s) str(s)
-#define str(s) #s
-
 #ifdef MODBUS_CHAN_0 
 #define MOD_DIG_0 1
 #define MODBUS_CHAN_0_IDX 0

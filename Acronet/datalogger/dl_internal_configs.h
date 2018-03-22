@@ -203,7 +203,7 @@ static const __flash MODULE_INTERFACE iface_module[] = {
 // DATALOGGER MODULE INTERFACE
 ////////////////////////////////////////////////////////////////////////////////////	
 															{	NULL,
-																NULL,
+																dl_enable,
 																NULL,
 																NULL,
 																dl_reset_data,

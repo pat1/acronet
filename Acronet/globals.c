@@ -18,6 +18,23 @@
 #include "Acronet/Sensors/raingauge/pulse_raingauge.h"
 //Extern delarations
 const char g_szCRLF[] PROGMEM = "\r\n";
+
+#define xstr(s) str(s)
+#define str(s) #s
+
+
+#ifdef GIT_TAG
+const char g_szGIT_TAG[] PROGMEM = xstr(GIT_TAG);
+#else
+const char g_szGIT_TAG[] PROGMEM = "UNKNOWN";
+#endif
+
+#ifdef PRJ_TAG
+const char g_szPRJ_TAG[] PROGMEM = xstr(PRJ_TAG);
+#else
+const char g_szPRJ_TAG[] PROGMEM = "UNKNOWN";
+#endif
+
 uint8_t g_log_verbosity = VERY_VERBOSE;
 
 

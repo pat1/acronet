@@ -96,10 +96,16 @@ int main (void)
 //
 	//rtc_init();
 	
+	debug_string_1P(NORMAL,PSTR("\r\n\r\nBUILD VERSION : "));
+	debug_string_1P(NORMAL,g_szGIT_TAG);
+	debug_string_1P(NORMAL,PSTR("\r\nFW CONFIGURATION : "));
+	debug_string_1P(NORMAL,g_szPRJ_TAG);
+	
+	
 	hal_rtc_init();
 
 
-	debug_string(NORMAL,PSTR("Enabling oscillator for DFLL\r\n"),true);
+	debug_string(NORMAL,PSTR("\r\nEnabling oscillator for DFLL\r\n"),PGM_STRING);
 
 
  	irqflags_t flags = cpu_irq_save();
@@ -113,7 +119,7 @@ int main (void)
 	cpu_irq_enable();
 
 
-	debug_string(NORMAL,PSTR("oscillator OK\r\n"),true);
+	debug_string(NORMAL,PSTR("oscillator OK\r\n"),PGM_STRING);
 
 
 
@@ -123,13 +129,13 @@ int main (void)
 
 	char buf[64];
 	
-	debug_string(NORMAL,PSTR("\r\nsizeof(void *) = "),true);
+	debug_string(NORMAL,PSTR("\r\nsizeof(void *) = "),PGM_STRING);
 	itoa(sizeof(void *),buf,10);
-	debug_string(NORMAL,buf,false);
+	debug_string(NORMAL,buf,RAM_STRING);
 
-	debug_string(NORMAL,PSTR("\r\nsizeof(flash_addr_t) = "),true);
+	debug_string(NORMAL,PSTR("\r\nsizeof(flash_addr_t) = "),PGM_STRING);
 	itoa(sizeof(flash_addr_t),buf,10);
-	debug_string(NORMAL,buf,false);
+	debug_string(NORMAL,buf,RAM_STRING);
 
 //#ifndef SIM900_USART_POLLED
 	//debug_string(NORMAL,PSTR ("\r\nSince you compiled in DEBUG we start the GPRS UART in main\r\n"),true);
