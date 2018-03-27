@@ -62,6 +62,9 @@ extern const char g_szCRLF[];
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
+#define xstr(s) str(s)
+#define str(s) #s
+
 
 //ERROR CODES
 typedef uint16_t RET_ERROR_CODE;

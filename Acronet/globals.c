@@ -19,9 +19,6 @@
 //Extern delarations
 const char g_szCRLF[] PROGMEM = "\r\n";
 
-#define xstr(s) str(s)
-#define str(s) #s
-
 
 #ifdef GIT_TAG
 const char g_szGIT_TAG[] PROGMEM = xstr(GIT_TAG);

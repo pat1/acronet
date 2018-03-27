@@ -165,10 +165,10 @@ RAINGAUGE_DATA raingauge_data[1];
 #ifdef SETUP_T023_MODBUS
 	T023_DATA t023_data;
 #endif
-#ifdef SETUP_T023_MODBUS
+#ifdef SETUP_T026_MODBUS
 	T026_DATA t026_data;
 #endif
-#ifdef SETUP_T023_MODBUS
+#ifdef SETUP_T056_MODBUS
 	T056_DATA t056_data;
 #endif
 } __attribute__((packed)) DB_RECORD;

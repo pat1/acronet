@@ -39,7 +39,6 @@ typedef struct
 	int16_t levl;
 } DATAVAL;
 
-static MBUS_CONTROL g_mbc = { .status=MBUS_STATUS_BEGIN };
 static MBUS_PDU g_mbp = {0};
 
 static DATAVAL g_Data[T056_DATABUFSIZE];
@@ -196,29 +195,28 @@ static void interpret_pdu(MBUS_PDU * const pPDU)
 
 bool t056_Yield( void )
 {
-	while(! MBUS_is_empty(T056_MBUS_CH))
+	while(! MBUS_IS_EMPTY(T056_MBUS_CH) )
 	{
-		
-		MBUS_build_dgram(&g_mbc,&g_mbp,MBUS_get_byte(T056_MBUS_CH));
-		if (MBUS_STATUS_END == g_mbc.status)
+		const uint8_t b = MBUS_GET_BYTE(T056_MBUS_CH);
+		if ( MBUS_STATUS_END == MBUS_BUILD_DGRAM(T056_MBUS_CH,&g_mbp,b) )
 		{
 			usart_putchar(USART_DEBUG,'y');
 
-			const uint16_t crcc = mb_crc_get(g_mbc.transmission_crc);
+			const uint16_t crcc = MBUS_GET_CRC(T056_MBUS_CH);
 			const uint16_t crcp =( (((uint16_t) g_mbp.crc_hi) << 8) | g_mbp.crc_lo );
 			if (crcc == crcp)
 			{
 				usart_putchar(USART_DEBUG,'u');
 				interpret_pdu(&g_mbp);
-			} else {
+				} else {
 				char szBUF[64];
 				sprintf_P(szBUF,PSTR("%04X != %04X\r\n"),crcc,crcp);
 				debug_string(NORMAL,szBUF,RAM_STRING);
 			}
-			g_mbc.status = MBUS_STATUS_BEGIN;
+			MBUS_RELEASE(T056_MBUS_CH);
 		}
-//		usart_putchar(USART_DEBUG,'Y');
-				
+		//		usart_putchar(USART_DEBUG,'Y');
+		
 		return true;
 	}
 	return false;
@@ -228,15 +226,15 @@ void t056_periodic(void)
 {
 	static const __flash uint8_t cmd[] = {0x07,0x04,0x00,0x04,0x00,0x02,0x30,0x6C};
 
-	if (g_mbc.status!=MBUS_STATUS_BEGIN )
+	if ( AC_ERROR_OK != MBUS_LOCK(T056_MBUS_CH) )
 	{
-		usart_putchar(USART_DEBUG,'P');
 		return;
 	}
+
 	usart_putchar(USART_DEBUG,'p');
 	uint8_t buf[16];
 	memcpy_P(buf,cmd,8);
-	MBUS_issue_cmd(T056_MBUS_CH,buf,8);
+	MBUS_ISSUE_CMD(T056_MBUS_CH,buf,8);
 }
 
 RET_ERROR_CODE t056_reset_data(void)
