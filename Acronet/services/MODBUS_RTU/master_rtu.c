@@ -23,6 +23,16 @@
 #include "Acronet/services/MODBUS_RTU/mb_crc.h"
 #include "Acronet/services/MODBUS_RTU/master_rtu.h"
 
+typedef struct {
+	uint8_t status;
+
+	uint8_t addr;
+	uint8_t func;
+
+	uint8_t transmission_crc[2];
+} MBUS_CONTROL;
+
+
 #ifdef MOD_DIG_0
 #undef MOD_DIG_0
 #endif
@@ -435,13 +445,13 @@ uint8_t MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,con
 		mb_crc_reset(pControl->transmission_crc);
 	}
 	
-	char szBUF[256];
+//	char szBUF[256];
 
 	switch(pControl->status) {
 		case MBUS_STATUS_ADDR:
 			mb_crc_push(pControl->transmission_crc, b);
-			pControl->addr = b;
-			sprintf_P(szBUF,PSTR("MB ADDRESS %02X\r\n"),b);
+			pPDU->addr = b;
+//			sprintf_P(szBUF,PSTR("MB ADDRESS %02X\r\n"),b);
 			if (b!=pControl->addr)
 			{
 				pControl->status = MBUS_STATUS_END;
@@ -453,13 +463,13 @@ uint8_t MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,con
 		case MBUS_STATUS_FUNC:
 			mb_crc_push(pControl->transmission_crc, b);
 			pPDU->func = b;
-			sprintf_P(szBUF,PSTR("MB FUNC %02X\r\n"),b);
+//			sprintf_P(szBUF,PSTR("MB FUNC %02X\r\n"),b);
 			pControl->status = MBUS_STATUS_DATA_BYTE_COUNT;
 		break;
 		case MBUS_STATUS_DATA_BYTE_COUNT:
 			mb_crc_push(pControl->transmission_crc, b);
 			pPDU->data_size = b;
-			sprintf_P(szBUF,PSTR("MB BYTES %02X\r\n"),b);
+//			sprintf_P(szBUF,PSTR("MB BYTES %02X\r\n"),b);
 			pControl->status = MB_STATUS_DATA_BYTE;
 		break;
 		case MB_STATUS_DATA_BYTE:
@@ -467,27 +477,27 @@ uint8_t MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,con
 			pPDU->data.byte[pPDU->data.bc++] = b;
 			if (pPDU->data.bc >= pPDU->data_size)
 			{
-				sprintf_P(szBUF,PSTR("%02X\r\n"),b);
+//				sprintf_P(szBUF,PSTR("%02X\r\n"),b);
 				pControl->status = MBUS_STATUS_CRC_HI;
-			} else {
-				sprintf_P(szBUF,PSTR("%02X "),b);
-			}
+			} //else {
+//				sprintf_P(szBUF,PSTR("%02X "),b);
+//			}
 		break;
 		case MBUS_STATUS_CRC_HI:
 			pPDU->crc_hi  = b;
-			sprintf_P(szBUF,PSTR("CRC HI %02X\r\n"),b);
+//			sprintf_P(szBUF,PSTR("CRC HI %02X\r\n"),b);
 			pControl->status = MBUS_STATUS_CRC_LO;
 		break;
 		case MBUS_STATUS_CRC_LO:
 			pPDU->crc_lo  = b;
-			sprintf_P(szBUF,PSTR("CRC LO %02X\r\n"),b);
+//			sprintf_P(szBUF,PSTR("CRC LO %02X\r\n"),b);
 			pControl->status = MBUS_STATUS_END;
 		break;
 		default:
 		break;
 	}
 
-	debug_string(NORMAL,szBUF,RAM_STRING);
+//	debug_string(NORMAL,szBUF,RAM_STRING);
 
 	
 	return pControl->status;
@@ -507,12 +517,15 @@ uint8_t MBUS_get_byte_CH0(void)
 	return get_usartx_byte(MODBUS_CHAN_0_IDX);
 }
 
+static MBUS_CONTROL g_bc0 = {.status = MBUS_STATUS_BEGIN};
+
 RET_ERROR_CODE MBUS_issue_cmd_CH0(const uint8_t * const pBuf,uint16_t len)
 {
+	g_bc0.addr = pBuf[0];
+	g_bc0.func = pBuf[1];
+	
 	return MODBUS_CHAN_0_PUT(pBuf,len);
 }
-
-static MBUS_CONTROL g_bc0 = {.status = MBUS_STATUS_BEGIN};
 
 RET_ERROR_CODE MBUS_lock_CH0(void)
 {
@@ -538,7 +551,7 @@ uint8_t MBUS_build_dgram_CH0(MBUS_PDU * const pPDU,uint8_t b)
 
 uint16_t MBUS_get_crc_CH0(void)
 {
-	return mb_crc_get(&g_bc0);
+	return mb_crc_get(g_bc0.transmission_crc);
 }
 
 ISR(MODBUS_CHAN_0_CB)
@@ -562,12 +575,16 @@ uint8_t MBUS_get_byte_CH1(void)
 	return get_usartx_byte(MODBUS_CHAN_1_IDX);
 }
 
+static MBUS_CONTROL g_bc1 = {.status = MBUS_STATUS_BEGIN};
+
 RET_ERROR_CODE MBUS_issue_cmd_CH1(const uint8_t * const pBuf,uint16_t len)
 {
+	g_bc1.addr = pBuf[0];
+	g_bc1.func = pBuf[1];
+	
 	return MODBUS_CHAN_1_PUT(pBuf,len);
 }
 
-static MBUS_CONTROL g_bc1 = {.status = MBUS_STATUS_BEGIN};
 
 RET_ERROR_CODE MBUS_lock_CH1(void)
 {
@@ -593,7 +610,7 @@ uint8_t MBUS_build_dgram_CH1(MBUS_PDU * const pPDU,uint8_t b)
 
 uint16_t MBUS_get_crc_CH1(void)
 {
-	return mb_crc_get(&g_bc1);
+	return mb_crc_get(g_bc1.transmission_crc);
 }
 
 
@@ -616,12 +633,15 @@ uint8_t MBUS_get_byte_CH2(void)
 	return get_usartx_byte(MODBUS_CHAN_2_IDX);
 }
 
+static MBUS_CONTROL g_bc2 = {.status = MBUS_STATUS_BEGIN};
+
 RET_ERROR_CODE MBUS_issue_cmd_CH2(const uint8_t * const pBuf,uint16_t len)
 {
+	g_bc2.addr = pBuf[0];
+	g_bc2.func = pBuf[1];
+	
 	return MODBUS_CHAN_2_PUT(pBuf,len);
 }
-
-static MBUS_CONTROL g_bc2 = {.status = MBUS_STATUS_BEGIN};
 
 RET_ERROR_CODE MBUS_lock_CH2(void)
 {
@@ -647,7 +667,7 @@ uint8_t MBUS_build_dgram_CH2(MBUS_PDU * const pPDU,uint8_t b)
 
 uint16_t MBUS_get_crc_CH2(void)
 {
-	return mb_crc_get(&g_bc2);
+	return mb_crc_get(g_bc2.transmission_crc);
 }
 
 ISR(MODBUS_CHAN_2_CB)
@@ -671,12 +691,16 @@ uint8_t MBUS_get_byte_CH3(void)
 	return get_usartx_byte(MODBUS_CHAN_3_IDX);
 }
 
-RET_ERROR_CODE MBUS_issue_cmd_CH3(const uint8_t * const pBuf,uint16_t len)
-{
-	return MODBUS_CHAN_3_PUT(pBuf,len);
-}
 
 static MBUS_CONTROL g_bc3 = {.status = MBUS_STATUS_BEGIN};
+
+RET_ERROR_CODE MBUS_issue_cmd_CH3(const uint8_t * const pBuf,uint16_t len)
+{
+	g_bc3.addr = pBuf[0];
+	g_bc3.func = pBuf[1];
+	
+	return MODBUS_CHAN_3_PUT(pBuf,len);
+}
 
 RET_ERROR_CODE MBUS_lock_CH3(void)
 {
@@ -702,7 +726,7 @@ uint8_t MBUS_build_dgram_CH3(MBUS_PDU * const pPDU,uint8_t b)
 
 uint16_t MBUS_get_crc_CH3(void)
 {
-	return mb_crc_get(&g_bc3);
+	return mb_crc_get(g_bc3.transmission_crc);
 }
 
 ISR(MODBUS_CHAN_3_CB)

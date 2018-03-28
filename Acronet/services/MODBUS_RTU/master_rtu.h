@@ -23,14 +23,6 @@ enum {	MBUS_STATUS_BEGIN=0,
 		MBUS_STATUS_CRC_LO,
 		MBUS_STATUS_END };
 
-typedef struct {
-	uint8_t status;
-
-	uint8_t addr;
-	uint8_t func;
-
-	uint8_t transmission_crc[2];
-} MBUS_CONTROL;
 
 typedef struct {
 
@@ -52,7 +44,7 @@ void MBUS_reset(const uint8_t ch_id);
 //uint8_t MBUS_get_byte(const uint8_t ch_id);
 
 //RET_ERROR_CODE MBUS_issue_cmd(const uint8_t ch_id,const uint8_t * const pBuf,uint16_t len);
-uint8_t MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,const uint8_t b);
+//uint8_t MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,const uint8_t b);
 
 #define MBUS_PREP(p1,p2,...)			p1##p2(__VA_ARGS__)
 

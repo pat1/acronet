@@ -650,18 +650,43 @@ const __flash CAP_INTROSPECTION g_cap_introspection[4] = {
 
 static void dl_periodic_update( void )
 {
-#ifdef SETUP_VP61
-	vp61_periodic();
-#endif
-#ifdef SETUP_T023_MODBUS
-	t023_periodic();
-#endif
-#ifdef SETUP_T026_MODBUS
-	t026_periodic();
-#endif
-#ifdef SETUP_T056_MODBUS
-	t056_periodic();
-#endif
+	typedef void  ( * PERIODICFN  )(void);
+	
+	static void (* const __flash fnPeriodic[])(void) = {
+									#ifdef SETUP_VP61
+										vp61_periodic,
+									#endif
+									#ifdef SETUP_T023_MODBUS
+										t023_periodic,
+									#endif
+									#ifdef SETUP_T026_MODBUS
+										t026_periodic,
+									#endif
+									#ifdef SETUP_T056_MODBUS
+										t056_periodic,
+									#endif
+									};
+
+	static const __flash uint8_t tableSize = sizeof(fnPeriodic) / sizeof(PERIODICFN);
+									
+	static uint8_t idx = 0;
+	
+	for (uint8_t i=idx;i<tableSize;i++)
+	{
+		fnPeriodic[i]();
+	}
+										
+	for (uint8_t i=0;i<idx;i++)
+	{
+		fnPeriodic[i]();
+	}
+
+	idx++;
+	if (idx>tableSize)
+	{
+		idx = 0;
+	}
+										
 }
 
 
