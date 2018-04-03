@@ -52,6 +52,8 @@
 #include "Acronet/utils/station_setup/panel.h"
 #elif defined(STATION_SETUP_MONESI)
 #include "Acronet/utils/station_setup/monesi.h"
+#elif defined(STATION_SETUP_REACH)
+#include "Acronet/utils/station_setup/reach.h"
 
 #else 
 #pragma message "No configuration defined, using defaults"

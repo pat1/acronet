@@ -23,6 +23,19 @@
 #include "Acronet/services/MODBUS_RTU/mb_crc.h"
 #include "Acronet/services/MODBUS_RTU/master_rtu.h"
 
+typedef struct {
+	uint8_t status;
+
+	uint8_t addr;
+	uint8_t func;
+	
+	uint32_t seconds;
+	uint32_t millis;
+
+	uint8_t transmission_crc[2];
+} MBUS_CONTROL;
+
+
 #ifdef MOD_DIG_0
 #undef MOD_DIG_0
 #endif
@@ -35,9 +48,6 @@
 #ifdef MOD_DIG_3
 #undef MOD_DIG_3
 #endif
-
-#define xstr(s) str(s)
-#define str(s) #s
 
 #ifdef MODBUS_CHAN_0 
 #define MOD_DIG_0 1
@@ -324,31 +334,31 @@ static void cb_usartx(const uint8_t n,const uint8_t c)
 
 
 
-RET_ERROR_CODE MBUS_issue_cmd(const uint8_t ch_id,const uint8_t * const pBuf,uint16_t len)
-{
-#ifdef MODBUS_CHAN_0
-	if(ch_id==MODBUS_CHAN_0) {
-		return MODBUS_CHAN_0_PUT(pBuf,len);
-	} else
-#endif
-#ifdef MODBUS_CHAN_1
-	if(ch_id==MODBUS_CHAN_1) {
-		return MODBUS_CHAN_1_PUT(pBuf,len);
-	} else
-#endif
-#ifdef MODBUS_CHAN_2
-	if(ch_id==MODBUS_CHAN_2) {
-		return MODBUS_CHAN_2_PUT(pBuf,len);
-	} else
-#endif
-#ifdef MODBUS_CHAN_3
-	if(ch_id==MODBUS_CHAN_3) {
-		return MODBUS_CHAN_3_PUT(pBuf,len);
-	} else
-#endif
-	return AC_UNSUPPORTED;
-}
-
+//RET_ERROR_CODE MBUS_issue_cmd(const uint8_t ch_id,const uint8_t * const pBuf,uint16_t len)
+//{
+//#ifdef MODBUS_CHAN_0
+	//if(ch_id==MODBUS_CHAN_0) {
+		//return MODBUS_CHAN_0_PUT(pBuf,len);
+	//} else
+//#endif
+//#ifdef MODBUS_CHAN_1
+	//if(ch_id==MODBUS_CHAN_1) {
+		//return MODBUS_CHAN_1_PUT(pBuf,len);
+	//} else
+//#endif
+//#ifdef MODBUS_CHAN_2
+	//if(ch_id==MODBUS_CHAN_2) {
+		//return MODBUS_CHAN_2_PUT(pBuf,len);
+	//} else
+//#endif
+//#ifdef MODBUS_CHAN_3
+	//if(ch_id==MODBUS_CHAN_3) {
+		//return MODBUS_CHAN_3_PUT(pBuf,len);
+	//} else
+//#endif
+	//return AC_UNSUPPORTED;
+//}
+/*
 bool MBUS_is_empty(const uint8_t ch_id)
 {
 
@@ -375,73 +385,76 @@ bool MBUS_is_empty(const uint8_t ch_id)
 	return true;
 }
 
-void MBUS_reset(const uint8_t ch_id)
-{	
-#ifdef MODBUS_CHAN_0
-		if(ch_id==MODBUS_CHAN_0) {
-			reset_usartx_buffer(MODBUS_CHAN_0_IDX);
-		} else
-#endif
-#ifdef MODBUS_CHAN_1
-		if(ch_id==MODBUS_CHAN_1) {
-			reset_usartx_buffer(MODBUS_CHAN_1_IDX);
-		} else
-#endif
-#ifdef MODBUS_CHAN_2
-		if(ch_id==MODBUS_CHAN_2) {
-			reset_usartx_buffer(MODBUS_CHAN_2_IDX);
-		} else
-#endif
-#ifdef MODBUS_CHAN_2
-		if(ch_id==MODBUS_CHAN_3) {
-			reset_usartx_buffer(MODBUS_CHAN_3_IDX);
-		} else
-#endif
-	return;	
-}
+*/
 
-uint8_t MBUS_get_byte(const uint8_t ch_id)
-{
-#ifdef MODBUS_CHAN_0
-		if(ch_id==MODBUS_CHAN_0) {
-			return get_usartx_byte(MODBUS_CHAN_0_IDX);
-		} else
-#endif
-#ifdef MODBUS_CHAN_1
-		if(ch_id==MODBUS_CHAN_1) {
-			return get_usartx_byte(MODBUS_CHAN_1_IDX);
-		} else
-#endif
-#ifdef MODBUS_CHAN_2
-		if(ch_id==MODBUS_CHAN_2) {
-			return get_usartx_byte(MODBUS_CHAN_2_IDX);
-		} else
-#endif
-#ifdef MODBUS_CHAN_3
-		if(ch_id==MODBUS_CHAN_3) {
-			return get_usartx_byte(MODBUS_CHAN_3_IDX);
-		} else
-#endif
-	return 0;
-}
+//void MBUS_reset(const uint8_t ch_id)
+//{	
+//#ifdef MODBUS_CHAN_0
+		//if(ch_id==MODBUS_CHAN_0) {
+			//reset_usartx_buffer(MODBUS_CHAN_0_IDX);
+		//} else
+//#endif
+//#ifdef MODBUS_CHAN_1
+		//if(ch_id==MODBUS_CHAN_1) {
+			//reset_usartx_buffer(MODBUS_CHAN_1_IDX);
+		//} else
+//#endif
+//#ifdef MODBUS_CHAN_2
+		//if(ch_id==MODBUS_CHAN_2) {
+			//reset_usartx_buffer(MODBUS_CHAN_2_IDX);
+		//} else
+//#endif
+//#ifdef MODBUS_CHAN_2
+		//if(ch_id==MODBUS_CHAN_3) {
+			//reset_usartx_buffer(MODBUS_CHAN_3_IDX);
+		//} else
+//#endif
+	//return;	
+//}
+
+//uint8_t MBUS_get_byte(const uint8_t ch_id)
+//{
+//#ifdef MODBUS_CHAN_0
+		//if(ch_id==MODBUS_CHAN_0) {
+			//return get_usartx_byte(MODBUS_CHAN_0_IDX);
+		//} else
+//#endif
+//#ifdef MODBUS_CHAN_1
+		//if(ch_id==MODBUS_CHAN_1) {
+			//return get_usartx_byte(MODBUS_CHAN_1_IDX);
+		//} else
+//#endif
+//#ifdef MODBUS_CHAN_2
+		//if(ch_id==MODBUS_CHAN_2) {
+			//return get_usartx_byte(MODBUS_CHAN_2_IDX);
+		//} else
+//#endif
+//#ifdef MODBUS_CHAN_3
+		//if(ch_id==MODBUS_CHAN_3) {
+			//return get_usartx_byte(MODBUS_CHAN_3_IDX);
+		//} else
+//#endif
+	//return 0;
+//}
 
 
-RET_ERROR_CODE MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,uint8_t b)
+uint8_t MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,const uint8_t b)
 {
 	const uint8_t status = pControl->status;
+	
 	if (MBUS_STATUS_BEGIN == status)
 	{
 		pPDU->data.bc = 0;
 		mb_crc_reset(pControl->transmission_crc);
 	}
 	
-	char szBUF[256];
+//	char szBUF[256];
 
 	switch(pControl->status) {
 		case MBUS_STATUS_ADDR:
 			mb_crc_push(pControl->transmission_crc, b);
-			pControl->addr = b;
-			sprintf_P(szBUF,PSTR("MB ADDRESS %02X\r\n"),b);
+			pPDU->addr = b;
+//			sprintf_P(szBUF,PSTR("MB ADDRESS %02X\r\n"),b);
 			if (b!=pControl->addr)
 			{
 				pControl->status = MBUS_STATUS_END;
@@ -453,13 +466,13 @@ RET_ERROR_CODE MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const p
 		case MBUS_STATUS_FUNC:
 			mb_crc_push(pControl->transmission_crc, b);
 			pPDU->func = b;
-			sprintf_P(szBUF,PSTR("MB FUNC %02X\r\n"),b);
+//			sprintf_P(szBUF,PSTR("MB FUNC %02X\r\n"),b);
 			pControl->status = MBUS_STATUS_DATA_BYTE_COUNT;
 		break;
 		case MBUS_STATUS_DATA_BYTE_COUNT:
 			mb_crc_push(pControl->transmission_crc, b);
 			pPDU->data_size = b;
-			sprintf_P(szBUF,PSTR("MB BYTES %02X\r\n"),b);
+//			sprintf_P(szBUF,PSTR("MB BYTES %02X\r\n"),b);
 			pControl->status = MB_STATUS_DATA_BYTE;
 		break;
 		case MB_STATUS_DATA_BYTE:
@@ -467,33 +480,94 @@ RET_ERROR_CODE MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const p
 			pPDU->data.byte[pPDU->data.bc++] = b;
 			if (pPDU->data.bc >= pPDU->data_size)
 			{
-				sprintf_P(szBUF,PSTR("%02X\r\n"),b);
+//				sprintf_P(szBUF,PSTR("%02X\r\n"),b);
 				pControl->status = MBUS_STATUS_CRC_HI;
-			} else {
-				sprintf_P(szBUF,PSTR("%02X "),b);
-			}
+			} //else {
+//				sprintf_P(szBUF,PSTR("%02X "),b);
+//			}
 		break;
 		case MBUS_STATUS_CRC_HI:
 			pPDU->crc_hi  = b;
-			sprintf_P(szBUF,PSTR("CRC HI %02X\r\n"),b);
+//			sprintf_P(szBUF,PSTR("CRC HI %02X\r\n"),b);
 			pControl->status = MBUS_STATUS_CRC_LO;
 		break;
 		case MBUS_STATUS_CRC_LO:
 			pPDU->crc_lo  = b;
-			sprintf_P(szBUF,PSTR("CRC LO %02X\r\n"),b);
+//			sprintf_P(szBUF,PSTR("CRC LO %02X\r\n"),b);
 			pControl->status = MBUS_STATUS_END;
 		break;
 		default:
 		break;
 	}
 
-	debug_string(NORMAL,szBUF,RAM_STRING);
+//	debug_string(NORMAL,szBUF,RAM_STRING);
 
 	
+	return pControl->status;
+}
+
+
+
+#ifdef MODBUS_CHAN_0
+
+bool MBUS_is_empty_CH0(void)
+{
+	return is_usartx_empty(MODBUS_CHAN_0_IDX);	
+}
+
+uint8_t MBUS_get_byte_CH0(void)
+{
+	return get_usartx_byte(MODBUS_CHAN_0_IDX);
+}
+
+static MBUS_CONTROL g_bc0 = {.status = MBUS_STATUS_BEGIN};
+
+RET_ERROR_CODE MBUS_issue_cmd_CH0(const uint8_t * const pBuf,uint16_t len)
+{
+	g_bc0.addr = pBuf[0];
+	g_bc0.func = pBuf[1];
+	
+	return MODBUS_CHAN_0_PUT(pBuf,len);
+}
+
+RET_ERROR_CODE MBUS_lock_CH0(void)
+{
+	const uint32_t sec = hal_rtc_get_time();
+	//const uint32_t mil = hal_rtc_get_millis();
+	
+	if (g_bc0.status!=MBUS_STATUS_BEGIN )
+	{
+		if( abs(g_bc0.seconds-sec) > 2 ) {
+			debug_string_1P(NORMAL,PSTR("MBUS CH0 TIMEOUT"));
+			reset_usartx_buffer(MODBUS_CHAN_0_IDX);
+			g_bc0.status = MBUS_STATUS_BEGIN;
+			g_bc0.seconds = sec;
+			return AC_ERROR_OK;
+		}
+		debug_string_1P(NORMAL,PSTR("MBUS CH0 BUSY"));
+		return AC_ERROR_GENERIC;
+	}
+	
+	g_bc0.seconds = sec;
 	return AC_ERROR_OK;
 }
 
-#ifdef MODBUS_CHAN_0
+void MBUS_release_CH0(void)
+{
+	g_bc0.status = MBUS_STATUS_BEGIN;
+}
+
+
+uint8_t MBUS_build_dgram_CH0(MBUS_PDU * const pPDU,uint8_t b)
+{
+	return MBUS_build_dgram(&g_bc0,pPDU,b);
+}
+
+uint16_t MBUS_get_crc_CH0(void)
+{
+	return mb_crc_get(g_bc0.transmission_crc);
+}
+
 ISR(MODBUS_CHAN_0_CB)
 {
 	//usart_putchar(USART_DEBUG,'.');
@@ -501,8 +575,60 @@ ISR(MODBUS_CHAN_0_CB)
 }
 #endif
 
+
+
 #ifdef MODBUS_CHAN_1
-ISR(MODBUS_CHAN_0_CB)
+
+bool MBUS_is_empty_CH1(void)
+{
+	return is_usartx_empty(MODBUS_CHAN_1_IDX);
+}
+
+uint8_t MBUS_get_byte_CH1(void)
+{
+	return get_usartx_byte(MODBUS_CHAN_1_IDX);
+}
+
+static MBUS_CONTROL g_bc1 = {.status = MBUS_STATUS_BEGIN};
+
+RET_ERROR_CODE MBUS_issue_cmd_CH1(const uint8_t * const pBuf,uint16_t len)
+{
+	g_bc1.addr = pBuf[0];
+	g_bc1.func = pBuf[1];
+	
+	return MODBUS_CHAN_1_PUT(pBuf,len);
+}
+
+
+RET_ERROR_CODE MBUS_lock_CH1(void)
+{
+	if (g_bc1.status!=MBUS_STATUS_BEGIN )
+	{
+		debug_string_1P(NORMAL,PSTR("MBUS CH1 BUSY"));
+		return AC_ERROR_GENERIC;
+	}
+	
+	return AC_ERROR_OK;
+}
+
+void MBUS_release_CH1(void)
+{
+	g_bc1.status = MBUS_STATUS_BEGIN;
+}
+
+
+uint8_t MBUS_build_dgram_CH1(MBUS_PDU * const pPDU,uint8_t b)
+{
+	return MBUS_build_dgram(&g_bc1,pPDU,b);
+}
+
+uint16_t MBUS_get_crc_CH1(void)
+{
+	return mb_crc_get(g_bc1.transmission_crc);
+}
+
+
+ISR(MODBUS_CHAN_1_CB)
 {
 	cb_usartx(MODBUS_CHAN_1_IDX,MODBUS_CHAN_1_USART.DATA);
 }
@@ -510,18 +636,121 @@ ISR(MODBUS_CHAN_0_CB)
 
 
 #ifdef MODBUS_CHAN_2
+
+bool MBUS_is_empty_CH2(void)
+{
+	return is_usartx_empty(MODBUS_CHAN_2_IDX);
+}
+
+uint8_t MBUS_get_byte_CH2(void)
+{
+	return get_usartx_byte(MODBUS_CHAN_2_IDX);
+}
+
+static MBUS_CONTROL g_bc2 = {.status = MBUS_STATUS_BEGIN};
+
+RET_ERROR_CODE MBUS_issue_cmd_CH2(const uint8_t * const pBuf,uint16_t len)
+{
+	g_bc2.addr = pBuf[0];
+	g_bc2.func = pBuf[1];
+	
+	return MODBUS_CHAN_2_PUT(pBuf,len);
+}
+
+RET_ERROR_CODE MBUS_lock_CH2(void)
+{
+	if (g_bc2.status!=MBUS_STATUS_BEGIN )
+	{
+		debug_string_1P(NORMAL,PSTR("MBUS CH2 BUSY"));
+		return AC_ERROR_GENERIC;
+	}
+	
+	return AC_ERROR_OK;
+}
+
+void MBUS_release_CH2(void)
+{
+	g_bc2.status = MBUS_STATUS_BEGIN;
+}
+
+
+uint8_t MBUS_build_dgram_CH2(MBUS_PDU * const pPDU,uint8_t b)
+{
+	return MBUS_build_dgram(&g_bc2,pPDU,b);
+}
+
+uint16_t MBUS_get_crc_CH2(void)
+{
+	return mb_crc_get(g_bc2.transmission_crc);
+}
+
 ISR(MODBUS_CHAN_2_CB)
 {
 	cb_usartx(MODBUS_CHAN_2_IDX,MODBUS_CHAN_2_USART.DATA);
 }
 #endif
 
+
+
+
 #ifdef MODBUS_CHAN_3
+
+bool MBUS_is_empty_CH3(void)
+{
+	return is_usartx_empty(MODBUS_CHAN_3_IDX);
+}
+
+uint8_t MBUS_get_byte_CH3(void)
+{
+	return get_usartx_byte(MODBUS_CHAN_3_IDX);
+}
+
+
+static MBUS_CONTROL g_bc3 = {.status = MBUS_STATUS_BEGIN};
+
+RET_ERROR_CODE MBUS_issue_cmd_CH3(const uint8_t * const pBuf,uint16_t len)
+{
+	g_bc3.addr = pBuf[0];
+	g_bc3.func = pBuf[1];
+	
+	return MODBUS_CHAN_3_PUT(pBuf,len);
+}
+
+RET_ERROR_CODE MBUS_lock_CH3(void)
+{
+	if (g_bc3.status!=MBUS_STATUS_BEGIN )
+	{
+		debug_string_1P(NORMAL,PSTR("MBUS CH3 BUSY"));
+		return AC_ERROR_GENERIC;
+	}
+	
+	return AC_ERROR_OK;
+}
+
+void MBUS_release_CH3(void)
+{
+	g_bc3.status = MBUS_STATUS_BEGIN;
+}
+
+
+uint8_t MBUS_build_dgram_CH3(MBUS_PDU * const pPDU,uint8_t b)
+{
+	return MBUS_build_dgram(&g_bc3,pPDU,b);
+}
+
+uint16_t MBUS_get_crc_CH3(void)
+{
+	return mb_crc_get(g_bc3.transmission_crc);
+}
+
 ISR(MODBUS_CHAN_3_CB)
 {
 	cb_usartx(MODBUS_CHAN_3_IDX,MODBUS_CHAN_3_USART.DATA);
 }
 #endif
+
+
+
 
 //#ifdef MODBUS_CHAN_0
 //bool MBUS_ch0_is_empty(void)

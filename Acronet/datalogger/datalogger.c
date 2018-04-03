@@ -130,6 +130,19 @@ static RET_ERROR_CODE dl_Data2String(    const DL_INTERNAL_DATA * const st
 
 }
 
+static void dl_enable(void)
+{
+	char szBUF[128];	
+	szBUF[0] = 0;
+	strcat_P(szBUF,PSTR("BUILD VERSION : "));
+	strcat_P(szBUF,g_szGIT_TAG);
+	LOG_say(szBUF);
+	szBUF[0] = 0;
+	strcat_P(szBUF,PSTR("FW CONFIGURATION : "));
+	strcat_P(szBUF,g_szPRJ_TAG);
+	LOG_say(szBUF);
+	
+}
 
 #include "dl_internal_configs.h"
 
@@ -650,7 +663,6 @@ RET_ERROR_CODE dl_init( void )
 
 		fn_Enable();
 	}
-
 
 	
 	return AC_ERROR_OK;

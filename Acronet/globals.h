@@ -36,6 +36,11 @@ enum {
 #include "progmem.h"
 
 
+#include "git_tag.h"
+
+extern const char g_szGIT_TAG[];
+extern const char g_szPRJ_TAG[];
+
 
 //Strings
 extern const char g_szCRLF[];
@@ -56,6 +61,9 @@ extern const char g_szCRLF[];
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
+
+#define xstr(s) str(s)
+#define str(s) #s
 
 
 //ERROR CODES
