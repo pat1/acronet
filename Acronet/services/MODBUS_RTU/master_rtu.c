@@ -28,6 +28,9 @@ typedef struct {
 
 	uint8_t addr;
 	uint8_t func;
+	
+	uint32_t seconds;
+	uint32_t millis;
 
 	uint8_t transmission_crc[2];
 } MBUS_CONTROL;
@@ -529,12 +532,23 @@ RET_ERROR_CODE MBUS_issue_cmd_CH0(const uint8_t * const pBuf,uint16_t len)
 
 RET_ERROR_CODE MBUS_lock_CH0(void)
 {
+	const uint32_t sec = hal_rtc_get_time();
+	//const uint32_t mil = hal_rtc_get_millis();
+	
 	if (g_bc0.status!=MBUS_STATUS_BEGIN )
 	{
+		if( abs(g_bc0.seconds-sec) > 2 ) {
+			debug_string_1P(NORMAL,PSTR("MBUS CH0 TIMEOUT"));
+			reset_usartx_buffer(MODBUS_CHAN_0_IDX);
+			g_bc0.status = MBUS_STATUS_BEGIN;
+			g_bc0.seconds = sec;
+			return AC_ERROR_OK;
+		}
 		debug_string_1P(NORMAL,PSTR("MBUS CH0 BUSY"));
 		return AC_ERROR_GENERIC;
 	}
 	
+	g_bc0.seconds = sec;
 	return AC_ERROR_OK;
 }
 

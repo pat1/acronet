@@ -48,6 +48,9 @@
 #ifdef SETUP_T056_MODBUS
 #include "Acronet/Sensors/SIAP_MICROS/t056/t056.h"
 #endif
+#ifdef SETUP_HD3910_MODBUS
+#include "Acronet/Sensors/DELTAOHM/HD3910/hd3910.h"
+#endif
 
 #if defined (SETUP_CAP_RAIN) || defined (SETUP_CAP_LEVEL)
 #include "Acronet/services/CAP/cap_common.h"
@@ -111,6 +114,9 @@ typedef enum {
 #ifdef SETUP_T056_MODBUS
 	T056_MODBUS,
 #endif
+#ifdef SETUP_HD3910_MODBUS
+	HD3910_MODBUS,
+#endif
 	DL_MODULE_END
 } MODULE_ID;
 
@@ -170,6 +176,9 @@ RAINGAUGE_DATA raingauge_data[1];
 #endif
 #ifdef SETUP_T056_MODBUS
 	T056_DATA t056_data;
+#endif
+#ifdef SETUP_HD3910_MODBUS
+	HD3910_DATA hd3910_data;
 #endif
 } __attribute__((packed)) DB_RECORD;
 
@@ -514,6 +523,20 @@ static const __flash MODULE_INTERFACE iface_module[] = {
 #endif //RMAP_SERVICES
 															},
 #endif
+#ifdef SETUP_HD3910_MODBUS
+															{	hd3910_init,
+																NULL,
+																NULL,
+																hd3910_Yield,
+																hd3910_reset_data,
+																( GETDATA )		hd3910_get_data,
+																( DATA2STRING )	hd3910_Data2String,
+
+#ifdef RMAP_SERVICES
+NULL
+#endif //RMAP_SERVIC
+															},
+#endif
 
 };
 	
@@ -602,6 +625,11 @@ static inline size_t __attribute__((const)) selectDataSource( const uint8_t idx 
 		return offsetof(DB_RECORD,t056_data);
 		break;
 #endif
+#ifdef SETUP_HD3910_MODBUS
+		case HD3910_MODBUS:
+		return offsetof(DB_RECORD,hd3910_data);
+		break;
+#endif
 
 		default:
 		return 0xFFFF;
@@ -664,6 +692,9 @@ static void dl_periodic_update( void )
 									#endif
 									#ifdef SETUP_T056_MODBUS
 										t056_periodic,
+									#endif
+									#ifdef SETUP_HD3910_MODBUS
+										hd3910_periodic,
 									#endif
 									};
 
