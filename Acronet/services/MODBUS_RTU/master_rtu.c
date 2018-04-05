@@ -602,12 +602,23 @@ RET_ERROR_CODE MBUS_issue_cmd_CH1(const uint8_t * const pBuf,uint16_t len)
 
 RET_ERROR_CODE MBUS_lock_CH1(void)
 {
+	const uint32_t sec = hal_rtc_get_time();
+	//const uint32_t mil = hal_rtc_get_millis();
+	
 	if (g_bc1.status!=MBUS_STATUS_BEGIN )
 	{
+		if( abs(g_bc1.seconds-sec) > 2 ) {
+			debug_string_1P(NORMAL,PSTR("MBUS CH1 TIMEOUT"));
+			reset_usartx_buffer(MODBUS_CHAN_1_IDX);
+			g_bc1.status = MBUS_STATUS_BEGIN;
+			g_bc1.seconds = sec;
+			return AC_ERROR_OK;
+		}
 		debug_string_1P(NORMAL,PSTR("MBUS CH1 BUSY"));
 		return AC_ERROR_GENERIC;
 	}
 	
+	g_bc1.seconds = sec;
 	return AC_ERROR_OK;
 }
 
@@ -659,12 +670,23 @@ RET_ERROR_CODE MBUS_issue_cmd_CH2(const uint8_t * const pBuf,uint16_t len)
 
 RET_ERROR_CODE MBUS_lock_CH2(void)
 {
+	const uint32_t sec = hal_rtc_get_time();
+	//const uint32_t mil = hal_rtc_get_millis();
+	
 	if (g_bc2.status!=MBUS_STATUS_BEGIN )
 	{
+		if( abs(g_bc2.seconds-sec) > 2 ) {
+			debug_string_1P(NORMAL,PSTR("MBUS CH2 TIMEOUT"));
+			reset_usartx_buffer(MODBUS_CHAN_2_IDX);
+			g_bc2.status = MBUS_STATUS_BEGIN;
+			g_bc2.seconds = sec;
+			return AC_ERROR_OK;
+		}
 		debug_string_1P(NORMAL,PSTR("MBUS CH2 BUSY"));
 		return AC_ERROR_GENERIC;
 	}
 	
+	g_bc2.seconds = sec;
 	return AC_ERROR_OK;
 }
 
@@ -718,12 +740,23 @@ RET_ERROR_CODE MBUS_issue_cmd_CH3(const uint8_t * const pBuf,uint16_t len)
 
 RET_ERROR_CODE MBUS_lock_CH3(void)
 {
+	const uint32_t sec = hal_rtc_get_time();
+	//const uint32_t mil = hal_rtc_get_millis();
+	
 	if (g_bc3.status!=MBUS_STATUS_BEGIN )
 	{
+		if( abs(g_bc3.seconds-sec) > 2 ) {
+			debug_string_1P(NORMAL,PSTR("MBUS CH3 TIMEOUT"));
+			reset_usartx_buffer(MODBUS_CHAN_3_IDX);
+			g_bc3.status = MBUS_STATUS_BEGIN;
+			g_bc3.seconds = sec;
+			return AC_ERROR_OK;
+		}
 		debug_string_1P(NORMAL,PSTR("MBUS CH3 BUSY"));
 		return AC_ERROR_GENERIC;
 	}
 	
+	g_bc3.seconds = sec;
 	return AC_ERROR_OK;
 }
 
