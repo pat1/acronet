@@ -12,6 +12,6 @@
 
 RET_ERROR_CODE gpio2log_init(void);
 bool gpio2log_Yield(void);
-
+void gpio2log_periodic(void);
 
 #endif /* GPIO2LOG_H_ */

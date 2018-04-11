@@ -42,8 +42,9 @@ RET_ERROR_CODE gpio2log_init(void)
 static volatile uint8_t pending_status_A;
 static volatile uint8_t pending_status_B;
 
-static volatile uint8_t consolidated_status_A;
+//static volatile uint8_t consolidated_status_A;
 static volatile uint8_t consolidated_status_B;
+
 
 static void write2log(const uint8_t vals,const char szTemplate[])
 {
@@ -69,23 +70,30 @@ static void write2log(const uint8_t vals,const char szTemplate[])
 	debug_string(NORMAL,buf,RAM_STRING);
 }
 
+static volatile uint8_t flags = 0;
+
 bool gpio2log_Yield(void)
 {
+
 	
-	if (consolidated_status_A != pending_status_A)
+//	if (consolidated_status_A != pending_status_A)
+	if (flags & 0x01)
 	{
 		const uint8_t vals = pending_status_A;
 		static const __flash char szTemplate[] = "{\"TIME\":%lu,\"PORT\":\"A\",\"BITFIELD\":[";
 		write2log(vals,szTemplate);
-		consolidated_status_A = vals;
+//		consolidated_status_A = vals;
+		flags &= 0b11111110;
 	} 
 
-	if (consolidated_status_B != pending_status_B)
+//	if (consolidated_status_B != pending_status_B)
+	if (flags & 0x02)
 	{
 		const uint8_t vals = pending_status_B;
 		static const __flash char szTemplate[] = "{\"TIME\":%lu,\"PORT\":\"B\",\"BITFIELD\":[";
 		write2log(vals,szTemplate);
-		consolidated_status_B = vals;
+//		consolidated_status_B = vals;
+		flags &= 0b11111101;
 	}
 	
 	return false;
@@ -99,6 +107,7 @@ static void gpio2log_PA_tip(void)
 	if ((lastTip==0) || (epoch!=lastTip) )
 	{
 		pending_status_A = PORTA_IN;
+		flags |= 0b00000001;
 	}
 	lastTip = epoch;
 }
@@ -111,10 +120,27 @@ static void gpio2log_PB_tip(void)
 	if ((lastTip==0) || (epoch!=lastTip) )
 	{
 		pending_status_B = PORTB_IN;
+		flags |= 0b00000010;
 	}
 	lastTip = epoch;
 
 }
+
+
+void gpio2log_periodic(void)
+{
+	static uint8_t secs = 0;
+	
+	if( ++secs == 30 ) {
+		irqflags_t flags = cpu_irq_save();
+		gpio2log_PA_tip();
+		gpio2log_PB_tip();
+		cpu_irq_restore(flags);
+		secs = 0;
+	}
+	
+}
+
 
 //static void gpio2log_PA_tip(const uint16_t cents)
 //{

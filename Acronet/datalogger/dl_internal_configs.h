@@ -696,6 +696,9 @@ static void dl_periodic_update( void )
 									#ifdef SETUP_HD3910_MODBUS
 										hd3910_periodic,
 									#endif
+									#ifdef SETUP_GPIO2LOG
+										gpio2log_periodic,
+									#endif
 									};
 
 	static const __flash uint8_t tableSize = sizeof(fnPeriodic) / sizeof(PERIODICFN);
@@ -712,8 +715,7 @@ static void dl_periodic_update( void )
 		fnPeriodic[i]();
 	}
 
-	idx++;
-	if (idx>tableSize)
+	if ( ++idx >= tableSize )
 	{
 		idx = 0;
 	}

@@ -1801,10 +1801,16 @@ RET_ERROR_CODE sim900_tcp_send(	const uint8_t cid,
 	LITTLE_DELAY;
 	sim900_put_data(pBuf,dimBufSend,isBufPGM);
 	
-	if(NULL==sim900_wait_string(PSTR("SEND OK\r\n"), 9,PGM_STRING))
+	if(NULL==pAnswer)
 	{
-		return AC_SIM900_TIMEOUT;
+		if(NULL==sim900_wait_string(PSTR("SEND OK\r\n"), 9,PGM_STRING))
+		{
+			return AC_SIM900_TIMEOUT;
+		}
+
+		return AC_ERROR_OK;
 	}
+
 
 	//if(NULL==sim900_wait_string(PSTR("+RECEIVE,"), 8,PGM_STRING))
 	//{
@@ -1814,10 +1820,6 @@ RET_ERROR_CODE sim900_tcp_send(	const uint8_t cid,
 	//uint16_t len = sizeof(szBuf);
 	//sim900_read_string(szBuf,&len);
 
-	if(NULL==pAnswer)
-	{
-		return AC_ERROR_OK;
-	}
 	
 	return sim900_tcp_read(pAnswer,pdimBufAnsw);
 	//return sim900_read_data(pAnswer,pdimBufAnsw);
