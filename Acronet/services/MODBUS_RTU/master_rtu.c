@@ -241,69 +241,69 @@ static void cb_usartx(const uint8_t n,const uint8_t c)
 
 #ifdef MODBUS_CHAN_0
 #undef MODBUS_CHAN_0_PUT
-#undef MODBUS_CHAN_0_CB
+#undef MODBUS_CHAN_0_ISR
 #undef MBUS_CHAN_0_USART
 //#if(0==MOD_IDX_0)
 #define MODBUS_CHAN_0_PUT SP336_0_PutBuffer
-#define MODBUS_CHAN_0_CB  SP336_USART0_RX_Vect
+#define MODBUS_CHAN_0_ISR  SP336_USART0_RX_Vect
 #define MODBUS_CHAN_0_USART SP336_USART0
 //#elif(1==MOD_IDX_0)
 //#define MODBUS_CHAN_0_PUT SP336_1_PutBuffer
-//#define MODBUS_CHAN_0_CB  SP336_USART1_RX_Vect
+//#define MODBUS_CHAN_0_ISR  SP336_USART1_RX_Vect
 //#define MODBUS_CHAN_0_USART SP336_USART1
 //#elif(2==MOD_IDX_0)
 //#define MODBUS_CHAN_0_PUT SP336_2_PutBuffer
-//#define MODBUS_CHAN_0_CB  SP336_USART2_RX_Vect
+//#define MODBUS_CHAN_0_ISR  SP336_USART2_RX_Vect
 //#define MODBUS_CHAN_0_USART SP336_USART2
 //#elif(3==MOD_IDX_0)
 //#define MODBUS_CHAN_0_PUT SP336_3_PutBuffer
-//#define MODBUS_CHAN_0_CB  SP336_USART3_RX_Vect
+//#define MODBUS_CHAN_0_ISR  SP336_USART3_RX_Vect
 //#define MODBUS_CHAN_0_USART SP336_USART3
 //#endif
 #endif //MODBUS_CHAN_0
 
 #ifdef MODBUS_CHAN_1
 #undef MODBUS_CHAN_1_PUT
-#undef MODBUS_CHAN_1_CB
+#undef MODBUS_CHAN_1_ISR
 #undef MODBUS_CHAN_1_USART
 //#if(0==MOD_IDX_0)
 //#define MODBUS_CHAN_1_PUT SP336_0_PutBuffer
-//#define MODBUS_CHAN_1_CB  SP336_USART0_RX_Vect
+//#define MODBUS_CHAN_1_ISR  SP336_USART0_RX_Vect
 //#define MODBUS_CHAN_1_USART SP336_USART0
 //#elif(1==MOD_IDX_0)
 #define MODBUS_CHAN_1_PUT SP336_1_PutBuffer
-#define MODBUS_CHAN_1_CB  SP336_USART1_RX_Vect
+#define MODBUS_CHAN_1_ISR  SP336_USART1_RX_Vect
 #define MODBUS_CHAN_1_USART SP336_USART1
 //#elif(2==MOD_IDX_0)
 //#define MODBUS_CHAN_1_PUT SP336_2_PutBuffer
-//#define MODBUS_CHAN_1_CB  SP336_USART2_RX_Vect
+//#define MODBUS_CHAN_1_ISR  SP336_USART2_RX_Vect
 //#define MODBUS_CHAN_1_USART SP336_USART2
 //#elif(3==MOD_IDX_0)
 //#define MODBUS_CHAN_1_PUT SP336_3_PutBuffer
-//#define MODBUS_CHAN_1_CB  SP336_USART3_RX_Vect
+//#define MODBUS_CHAN_1_ISR  SP336_USART3_RX_Vect
 //#define MODBUS_CHAN_1_USART SP336_USART3
 //#endif
 #endif //MODBUS_CHAN_1
 
 #ifdef MODBUS_CHAN_2
 #undef MODBUS_CHAN_2_PUT
-#undef MODBUS_CHAN_2_CB
+#undef MODBUS_CHAN_2_ISR
 #undef MODBUS_CHAN_2_USART
 //#if(0==MOD_IDX_0)
 //#define MODBUS_CHAN_2_PUT SP336_0_PutBuffer
-//#define MODBUS_CHAN_2_CB  SP336_USART0_RX_Vect
+//#define MODBUS_CHAN_2_ISR  SP336_USART0_RX_Vect
 //#define MODBUS_CHAN_2_USART SP336_USART0
 //#elif(1==MOD_IDX_0)
 //#define MODBUS_CHAN_2_PUT SP336_1_PutBuffer
-//#define MODBUS_CHAN_2_CB  SP336_USART1_RX_Vect
+//#define MODBUS_CHAN_2_ISR  SP336_USART1_RX_Vect
 //#define MODBUS_CHAN_2_USART SP336_USART1
 //#elif(2==MOD_IDX_0)
 #define MODBUS_CHAN_2_PUT SP336_2_PutBuffer
-#define MODBUS_CHAN_2_CB  SP336_USART2_RX_Vect
+#define MODBUS_CHAN_2_ISR  SP336_USART2_RX_Vect
 #define MODBUS_CHAN_2_USART SP336_USART2
 //#elif(3==MOD_IDX_0)
 //#define MODBUS_CHAN_2_PUT SP336_3_PutBuffer
-//#define MODBUS_CHAN_2_CB  SP336_USART3_RX_Vect
+//#define MODBUS_CHAN_2_ISR  SP336_USART3_RX_Vect
 //#define MODBUS_CHAN_2_USART SP336_USART3
 //#endif
 #endif //MODBUS_CHAN_2
@@ -311,23 +311,23 @@ static void cb_usartx(const uint8_t n,const uint8_t c)
 
 #ifdef MODBUS_CHAN_3
 #undef MODBUS_CHAN_3_PUT
-#undef MODBUS_CHAN_3_CB
+#undef MODBUS_CHAN_3_ISR
 #undef MODBUS_CHAN_3_USART
 //#if(0==MOD_IDX_0)
 //#define MODBUS_CHAN_3_PUT SP336_0_PutBuffer
-//#define MODBUS_CHAN_3_CB  SP336_USART0_RX_Vect
+//#define MODBUS_CHAN_3_ISR  SP336_USART0_RX_Vect
 //#define MODBUS_CHAN_3_USART SP336_USART0
 //#elif(1==MOD_IDX_0)
 //#define MODBUS_CHAN_3_PUT SP336_1_PutBuffer
-//#define MODBUS_CHAN_3_CB  SP336_USART1_RX_Vect
+//#define MODBUS_CHAN_3_ISR  SP336_USART1_RX_Vect
 //#define MODBUS_CHAN_3_USART SP336_USART1
 //#elif(2==MOD_IDX_0)
 //#define MODBUS_CHAN_3_PUT SP336_2_PutBuffer
-//#define MODBUS_CHAN_3_CB  SP336_USART2_RX_Vect
+//#define MODBUS_CHAN_3_ISR  SP336_USART2_RX_Vect
 //#define MODBUS_CHAN_3_USART SP336_USART2
 //#elif(3==MOD_IDX_0)
 #define MODBUS_CHAN_3_PUT SP336_3_PutBuffer
-#define MODBUS_CHAN_3_CB  SP336_USART3_RX_Vect
+#define MODBUS_CHAN_3_ISR  SP336_USART3_RX_Vect
 #define MODBUS_CHAN_3_USART SP336_USART3
 //#endif
 #endif //MODBUS_CHAN_3
@@ -537,7 +537,7 @@ RET_ERROR_CODE MBUS_lock_CH0(void)
 	
 	if (g_bc0.status!=MBUS_STATUS_BEGIN )
 	{
-		if( abs(g_bc0.seconds-sec) > 2 ) {
+		if( (max(g_bc0.seconds,sec) - min(g_bc0.seconds,sec)) > 2 ) {
 			debug_string_1P(NORMAL,PSTR("MBUS CH0 TIMEOUT"));
 			reset_usartx_buffer(MODBUS_CHAN_0_IDX);
 			g_bc0.status = MBUS_STATUS_BEGIN;
@@ -568,7 +568,7 @@ uint16_t MBUS_get_crc_CH0(void)
 	return mb_crc_get(g_bc0.transmission_crc);
 }
 
-ISR(MODBUS_CHAN_0_CB)
+ISR(MODBUS_CHAN_0_ISR)
 {
 	//usart_putchar(USART_DEBUG,'.');
 	cb_usartx(MODBUS_CHAN_0_IDX,MODBUS_CHAN_0_USART.DATA);
@@ -607,7 +607,7 @@ RET_ERROR_CODE MBUS_lock_CH1(void)
 	
 	if (g_bc1.status!=MBUS_STATUS_BEGIN )
 	{
-		if( abs(g_bc1.seconds-sec) > 2 ) {
+		if( (max(g_bc1.seconds,sec) - min(g_bc1.seconds,sec)) > 2 ) {
 			debug_string_1P(NORMAL,PSTR("MBUS CH1 TIMEOUT"));
 			reset_usartx_buffer(MODBUS_CHAN_1_IDX);
 			g_bc1.status = MBUS_STATUS_BEGIN;
@@ -639,7 +639,7 @@ uint16_t MBUS_get_crc_CH1(void)
 }
 
 
-ISR(MODBUS_CHAN_1_CB)
+ISR(MODBUS_CHAN_1_ISR)
 {
 	cb_usartx(MODBUS_CHAN_1_IDX,MODBUS_CHAN_1_USART.DATA);
 }
@@ -675,7 +675,7 @@ RET_ERROR_CODE MBUS_lock_CH2(void)
 	
 	if (g_bc2.status!=MBUS_STATUS_BEGIN )
 	{
-		if( abs(g_bc2.seconds-sec) > 2 ) {
+		if( (max(g_bc2.seconds,sec) - min(g_bc2.seconds,sec)) > 2 ) {
 			debug_string_1P(NORMAL,PSTR("MBUS CH2 TIMEOUT"));
 			reset_usartx_buffer(MODBUS_CHAN_2_IDX);
 			g_bc2.status = MBUS_STATUS_BEGIN;
@@ -706,7 +706,7 @@ uint16_t MBUS_get_crc_CH2(void)
 	return mb_crc_get(g_bc2.transmission_crc);
 }
 
-ISR(MODBUS_CHAN_2_CB)
+ISR(MODBUS_CHAN_2_ISR)
 {
 	cb_usartx(MODBUS_CHAN_2_IDX,MODBUS_CHAN_2_USART.DATA);
 }
@@ -745,7 +745,7 @@ RET_ERROR_CODE MBUS_lock_CH3(void)
 	
 	if (g_bc3.status!=MBUS_STATUS_BEGIN )
 	{
-		if( abs(g_bc3.seconds-sec) > 2 ) {
+		if( (max(g_bc3.seconds,sec) - min(g_bc3.seconds,sec)) > 2 ) {
 			debug_string_1P(NORMAL,PSTR("MBUS CH3 TIMEOUT"));
 			reset_usartx_buffer(MODBUS_CHAN_3_IDX);
 			g_bc3.status = MBUS_STATUS_BEGIN;
@@ -776,7 +776,7 @@ uint16_t MBUS_get_crc_CH3(void)
 	return mb_crc_get(g_bc3.transmission_crc);
 }
 
-ISR(MODBUS_CHAN_3_CB)
+ISR(MODBUS_CHAN_3_ISR)
 {
 	cb_usartx(MODBUS_CHAN_3_IDX,MODBUS_CHAN_3_USART.DATA);
 }
