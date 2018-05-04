@@ -49,7 +49,7 @@ typedef struct {
 #undef MOD_DIG_3
 #endif
 
-#ifdef MODBUS_CHAN_0 
+#ifdef USES_MODBUS_CHAN_0 
 #define MOD_DIG_0 1
 #define MODBUS_CHAN_0_IDX 0
 #pragma message "MODBUS CH#0 is ON"
@@ -58,7 +58,7 @@ typedef struct {
 #define MOD_DIG_0 0
 #endif
 
-#ifdef MODBUS_CHAN_1
+#ifdef USES_MODBUS_CHAN_1
 #define MOD_DIG_1 1
 #define MODBUS_CHAN_1_IDX (0 + MOD_DIG_0)
 #pragma message "MODBUS CH#1 is ON"
@@ -67,7 +67,7 @@ typedef struct {
 #define MOD_DIG_1 0
 #endif
 
-#ifdef MODBUS_CHAN_2
+#ifdef USES_MODBUS_CHAN_2
 #define MOD_DIG_2 1
 #define MODBUS_CHAN_2_IDX (0 + MOD_DIG_0 + MOD_DIG_1)
 #pragma message "MODBUS CH#2 is ON"
@@ -76,7 +76,7 @@ typedef struct {
 #define MOD_DIG_2 0
 #endif
 
-#ifdef MODBUS_CHAN_3
+#ifdef USES_MODBUS_CHAN_3
 #define MOD_DIG_3 1
 #define MODBUS_CHAN_3_IDX (0 + MOD_DIG_0 + MOD_DIG_1 + MOD_DIG_2)
 #pragma message "MODBUS CH#3 is ON"
@@ -150,6 +150,12 @@ volatile uint8_t idx_end_usart[MODBUS_CHANNELS] = {0};
 #endif
 
 
+void MBUS_PDU_reset(MBUS_PDU * const pPDU)
+{
+	pPDU->func = MBUS_STATUS_BEGIN;
+	pPDU->addr = 0;
+}
+
 
 static bool is_usartx_empty(const uint8_t n)
 {
@@ -179,33 +185,6 @@ static uint8_t get_usartx_byte(const uint8_t n)
 	return c;
 	
 }
-
-//static uint8_t put_usartx_buf(USART_t * const pusart,const char * const pBuf,uint16_t len)
-//{
-//
-//#ifdef MODBUS_CHAN_0
-	//if(ch_id==MODBUS_CHAN_0) {
-		//return put_usartx_buf(MOD_IDX_0,pBuf,len);
-	//} else
-//#endif
-//#ifdef MODBUS_CHAN_1
-	//if(ch_id==MODBUS_CHAN_1) {
-		//return put_usartx_buf(MOD_IDX_1,pBuf,len);
-	//} else
-//#endif
-//#ifdef MODBUS_CHAN_2
-	//if(ch_id==MODBUS_CHAN_2) {
-		//return put_usartx_buf(MOD_IDX_2,pBuf,len);
-	//} else
-//#endif
-//#ifdef MODBUS_CHAN_3
-	//if(ch_id==MODBUS_CHAN_3) {
-		//return put_usartx_buf(MOD_IDX_3,pBuf,len);
-	//} else
-//#endif
-	//return AC_UNSUPPORTED;
-//
-//}
 
 
 static void cb_usartx(const uint8_t n,const uint8_t c)
@@ -239,203 +218,45 @@ static void cb_usartx(const uint8_t n,const uint8_t c)
 #error "A symbol MODBUS_CHAN_3_PUT has been defined elsewhere"
 #endif
 
-#ifdef MODBUS_CHAN_0
+#ifdef USES_MODBUS_CHAN_0
 #undef MODBUS_CHAN_0_PUT
 #undef MODBUS_CHAN_0_ISR
 #undef MBUS_CHAN_0_USART
-//#if(0==MOD_IDX_0)
 #define MODBUS_CHAN_0_PUT SP336_0_PutBuffer
 #define MODBUS_CHAN_0_ISR  SP336_USART0_RX_Vect
 #define MODBUS_CHAN_0_USART SP336_USART0
-//#elif(1==MOD_IDX_0)
-//#define MODBUS_CHAN_0_PUT SP336_1_PutBuffer
-//#define MODBUS_CHAN_0_ISR  SP336_USART1_RX_Vect
-//#define MODBUS_CHAN_0_USART SP336_USART1
-//#elif(2==MOD_IDX_0)
-//#define MODBUS_CHAN_0_PUT SP336_2_PutBuffer
-//#define MODBUS_CHAN_0_ISR  SP336_USART2_RX_Vect
-//#define MODBUS_CHAN_0_USART SP336_USART2
-//#elif(3==MOD_IDX_0)
-//#define MODBUS_CHAN_0_PUT SP336_3_PutBuffer
-//#define MODBUS_CHAN_0_ISR  SP336_USART3_RX_Vect
-//#define MODBUS_CHAN_0_USART SP336_USART3
-//#endif
 #endif //MODBUS_CHAN_0
 
-#ifdef MODBUS_CHAN_1
+#ifdef USES_MODBUS_CHAN_1
 #undef MODBUS_CHAN_1_PUT
 #undef MODBUS_CHAN_1_ISR
 #undef MODBUS_CHAN_1_USART
-//#if(0==MOD_IDX_0)
-//#define MODBUS_CHAN_1_PUT SP336_0_PutBuffer
-//#define MODBUS_CHAN_1_ISR  SP336_USART0_RX_Vect
-//#define MODBUS_CHAN_1_USART SP336_USART0
-//#elif(1==MOD_IDX_0)
 #define MODBUS_CHAN_1_PUT SP336_1_PutBuffer
 #define MODBUS_CHAN_1_ISR  SP336_USART1_RX_Vect
 #define MODBUS_CHAN_1_USART SP336_USART1
-//#elif(2==MOD_IDX_0)
-//#define MODBUS_CHAN_1_PUT SP336_2_PutBuffer
-//#define MODBUS_CHAN_1_ISR  SP336_USART2_RX_Vect
-//#define MODBUS_CHAN_1_USART SP336_USART2
-//#elif(3==MOD_IDX_0)
-//#define MODBUS_CHAN_1_PUT SP336_3_PutBuffer
-//#define MODBUS_CHAN_1_ISR  SP336_USART3_RX_Vect
-//#define MODBUS_CHAN_1_USART SP336_USART3
-//#endif
 #endif //MODBUS_CHAN_1
 
-#ifdef MODBUS_CHAN_2
+#ifdef USES_MODBUS_CHAN_2
 #undef MODBUS_CHAN_2_PUT
 #undef MODBUS_CHAN_2_ISR
 #undef MODBUS_CHAN_2_USART
-//#if(0==MOD_IDX_0)
-//#define MODBUS_CHAN_2_PUT SP336_0_PutBuffer
-//#define MODBUS_CHAN_2_ISR  SP336_USART0_RX_Vect
-//#define MODBUS_CHAN_2_USART SP336_USART0
-//#elif(1==MOD_IDX_0)
-//#define MODBUS_CHAN_2_PUT SP336_1_PutBuffer
-//#define MODBUS_CHAN_2_ISR  SP336_USART1_RX_Vect
-//#define MODBUS_CHAN_2_USART SP336_USART1
-//#elif(2==MOD_IDX_0)
 #define MODBUS_CHAN_2_PUT SP336_2_PutBuffer
 #define MODBUS_CHAN_2_ISR  SP336_USART2_RX_Vect
 #define MODBUS_CHAN_2_USART SP336_USART2
-//#elif(3==MOD_IDX_0)
-//#define MODBUS_CHAN_2_PUT SP336_3_PutBuffer
-//#define MODBUS_CHAN_2_ISR  SP336_USART3_RX_Vect
-//#define MODBUS_CHAN_2_USART SP336_USART3
-//#endif
 #endif //MODBUS_CHAN_2
 
 
-#ifdef MODBUS_CHAN_3
+#ifdef USES_MODBUS_CHAN_3
 #undef MODBUS_CHAN_3_PUT
 #undef MODBUS_CHAN_3_ISR
 #undef MODBUS_CHAN_3_USART
-//#if(0==MOD_IDX_0)
-//#define MODBUS_CHAN_3_PUT SP336_0_PutBuffer
-//#define MODBUS_CHAN_3_ISR  SP336_USART0_RX_Vect
-//#define MODBUS_CHAN_3_USART SP336_USART0
-//#elif(1==MOD_IDX_0)
-//#define MODBUS_CHAN_3_PUT SP336_1_PutBuffer
-//#define MODBUS_CHAN_3_ISR  SP336_USART1_RX_Vect
-//#define MODBUS_CHAN_3_USART SP336_USART1
-//#elif(2==MOD_IDX_0)
-//#define MODBUS_CHAN_3_PUT SP336_2_PutBuffer
-//#define MODBUS_CHAN_3_ISR  SP336_USART2_RX_Vect
-//#define MODBUS_CHAN_3_USART SP336_USART2
-//#elif(3==MOD_IDX_0)
 #define MODBUS_CHAN_3_PUT SP336_3_PutBuffer
 #define MODBUS_CHAN_3_ISR  SP336_USART3_RX_Vect
 #define MODBUS_CHAN_3_USART SP336_USART3
-//#endif
 #endif //MODBUS_CHAN_3
 
 
 
-//RET_ERROR_CODE MBUS_issue_cmd(const uint8_t ch_id,const uint8_t * const pBuf,uint16_t len)
-//{
-//#ifdef MODBUS_CHAN_0
-	//if(ch_id==MODBUS_CHAN_0) {
-		//return MODBUS_CHAN_0_PUT(pBuf,len);
-	//} else
-//#endif
-//#ifdef MODBUS_CHAN_1
-	//if(ch_id==MODBUS_CHAN_1) {
-		//return MODBUS_CHAN_1_PUT(pBuf,len);
-	//} else
-//#endif
-//#ifdef MODBUS_CHAN_2
-	//if(ch_id==MODBUS_CHAN_2) {
-		//return MODBUS_CHAN_2_PUT(pBuf,len);
-	//} else
-//#endif
-//#ifdef MODBUS_CHAN_3
-	//if(ch_id==MODBUS_CHAN_3) {
-		//return MODBUS_CHAN_3_PUT(pBuf,len);
-	//} else
-//#endif
-	//return AC_UNSUPPORTED;
-//}
-/*
-bool MBUS_is_empty(const uint8_t ch_id)
-{
-
-#ifdef MODBUS_CHAN_0
-		if(ch_id==MODBUS_CHAN_0) {
-			return is_usartx_empty(MODBUS_CHAN_0_IDX);
-		} else
-#endif
-#ifdef MODBUS_CHAN_1
-		if(ch_id==MODBUS_CHAN_1) {
-			return is_usartx_empty(MODBUS_CHAN_1_IDX);
-	} else
-#endif
-#ifdef MODBUS_CHAN_2
-		if(ch_id==MODBUS_CHAN_2) {
-			return is_usartx_empty(MODBUS_CHAN_2_IDX);
-		} else
-#endif
-#ifdef MODBUS_CHAN_3
-		if(ch_id==MODBUS_CHAN_3) {
-			return is_usartx_empty(MODBUS_CHAN_3_IDX);
-		} else
-#endif		
-	return true;
-}
-
-*/
-
-//void MBUS_reset(const uint8_t ch_id)
-//{	
-//#ifdef MODBUS_CHAN_0
-		//if(ch_id==MODBUS_CHAN_0) {
-			//reset_usartx_buffer(MODBUS_CHAN_0_IDX);
-		//} else
-//#endif
-//#ifdef MODBUS_CHAN_1
-		//if(ch_id==MODBUS_CHAN_1) {
-			//reset_usartx_buffer(MODBUS_CHAN_1_IDX);
-		//} else
-//#endif
-//#ifdef MODBUS_CHAN_2
-		//if(ch_id==MODBUS_CHAN_2) {
-			//reset_usartx_buffer(MODBUS_CHAN_2_IDX);
-		//} else
-//#endif
-//#ifdef MODBUS_CHAN_2
-		//if(ch_id==MODBUS_CHAN_3) {
-			//reset_usartx_buffer(MODBUS_CHAN_3_IDX);
-		//} else
-//#endif
-	//return;	
-//}
-
-//uint8_t MBUS_get_byte(const uint8_t ch_id)
-//{
-//#ifdef MODBUS_CHAN_0
-		//if(ch_id==MODBUS_CHAN_0) {
-			//return get_usartx_byte(MODBUS_CHAN_0_IDX);
-		//} else
-//#endif
-//#ifdef MODBUS_CHAN_1
-		//if(ch_id==MODBUS_CHAN_1) {
-			//return get_usartx_byte(MODBUS_CHAN_1_IDX);
-		//} else
-//#endif
-//#ifdef MODBUS_CHAN_2
-		//if(ch_id==MODBUS_CHAN_2) {
-			//return get_usartx_byte(MODBUS_CHAN_2_IDX);
-		//} else
-//#endif
-//#ifdef MODBUS_CHAN_3
-		//if(ch_id==MODBUS_CHAN_3) {
-			//return get_usartx_byte(MODBUS_CHAN_3_IDX);
-		//} else
-//#endif
-	//return 0;
-//}
 
 
 uint8_t MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,const uint8_t b)
@@ -508,7 +329,7 @@ uint8_t MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,con
 
 
 
-#ifdef MODBUS_CHAN_0
+#ifdef USES_MODBUS_CHAN_0
 
 bool MBUS_is_empty_CH0(void)
 {
@@ -577,7 +398,7 @@ ISR(MODBUS_CHAN_0_ISR)
 
 
 
-#ifdef MODBUS_CHAN_1
+#ifdef USES_MODBUS_CHAN_1
 
 bool MBUS_is_empty_CH1(void)
 {
@@ -646,7 +467,7 @@ ISR(MODBUS_CHAN_1_ISR)
 #endif
 
 
-#ifdef MODBUS_CHAN_2
+#ifdef USES_MODBUS_CHAN_2
 
 bool MBUS_is_empty_CH2(void)
 {
@@ -715,7 +536,7 @@ ISR(MODBUS_CHAN_2_ISR)
 
 
 
-#ifdef MODBUS_CHAN_3
+#ifdef USES_MODBUS_CHAN_3
 
 bool MBUS_is_empty_CH3(void)
 {
@@ -781,108 +602,5 @@ ISR(MODBUS_CHAN_3_ISR)
 	cb_usartx(MODBUS_CHAN_3_IDX,MODBUS_CHAN_3_USART.DATA);
 }
 #endif
-
-
-
-
-//#ifdef MODBUS_CHAN_0
-//bool MBUS_ch0_is_empty(void)
-//{
-	//return 	is_usartx_empty(MOD_IDX_0);
-//}
-//
-//void MBUS_ch0_reset(void)
-//{
-	//reset_usartx_buffer(MOD_IDX_0);
-//}
-//
-//uint8_t MBUS_ch0_get_byte(void)
-//{
-	//return get_usartx_byte(MOD_IDX_0);
-//}
-//
-//void hal_sp336_usart0_rx_cb(const uint8_t c)
-//{
-	//cb_usartx(MOD_IDX_0,c);
-//}
-//
-//#pragma message "MODBUS CH#0 RX callback binded to SP336_UART0_RX_CB"
-//
-//#endif
-//
-//#ifdef MODBUS_CHAN_1
-//bool MBUS_ch1_is_empty(void)
-//{
-	//return 	is_usartx_empty(MOD_IDX_1);
-//}
-//
-//void MBUS_ch1_reset(void)
-//{
-	//reset_usartx_buffer(MOD_IDX_1);
-//}
-//
-//uint8_t MBUS_ch1_get_byte(void)
-//{
-	//return get_usartx_byte(MOD_IDX_1);
-//}
-//
-//void hal_sp336_usart1_rx_cb(const uint8_t c)
-//{
-	//cb_usartx(MOD_IDX_1,c);
-//}
-//
-//#pragma message "MODBUS CH#1 RX callback binded to SP336_UART1_RX_CB"
-//
-//#endif
-//
-//#ifdef MODBUS_CHAN_2
-//bool MBUS_ch2_is_empty(void)
-//{
-	//return 	is_usartx_empty(MOD_IDX_2);
-//}
-//
-//void MBUS_ch2_reset(void)
-//{
-	//reset_usartx_buffer(MOD_IDX_2);
-//}
-//
-//uint8_t MBUS_ch2_get_byte(void)
-//{
-	//return get_usartx_byte(MOD_IDX_2);
-//}
-//
-//void hal_sp336_usart2_rx_cb(const uint8_t c)
-//{
-	//cb_usartx(MOD_IDX_2,c);
-//}
-//
-//#pragma message "MODBUS CH#2 RX callback binded to SP336_UART2_RX_CB"
-//
-//#endif
-//
-//#ifdef MODBUS_CHAN_3
-//bool MBUS_ch3_is_empty(void)
-//{
-	//return 	is_usartx_empty(MOD_IDX_3);
-//}
-//
-//void MBUS_ch3_reset(void)
-//{
-	//reset_usartx_buffer(MOD_IDX_3);
-//}
-//
-//uint8_t MBUS_ch3_get_byte(void)
-//{
-	//return get_usartx_byte(MOD_IDX_3);
-//}
-//
-//void hal_sp336_usart3_rx_cb(const uint8_t c)
-//{
-	//cb_usartx(MOD_IDX_3,c);
-//}
-//
-//#pragma message "MODBUS CH#3 RX callback binded to SP336_UART3_RX_CB"
-//
-//#endif
 
 

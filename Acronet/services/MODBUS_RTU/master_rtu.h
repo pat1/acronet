@@ -39,6 +39,8 @@ typedef struct {
 	
 } MBUS_PDU;
 
+void MBUS_PDU_reset(MBUS_PDU * const pPDU);
+
 bool MBUS_is_empty(const uint8_t ch_id);
 void MBUS_reset(const uint8_t ch_id);
 //uint8_t MBUS_get_byte(const uint8_t ch_id);
