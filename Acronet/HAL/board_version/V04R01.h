@@ -95,6 +95,19 @@
 #define	SP336_2_MODE_SLEW_LIMIT		0b00001000
 
 
+#define PULSE_CHAN_0 0
+#define PULSE_CHAN_1 1
+
+#define NMEA_CHAN_0	0
+#define NMEA_CHAN_1	1
+#define NMEA_CHAN_2	2
+#define NMEA_CHAN_3	3
+
+#define MODBUS_CHAN_0	0
+#define MODBUS_CHAN_1	1
+#define MODBUS_CHAN_2	2
+#define MODBUS_CHAN_3	3
+
 //#define MCU_SWITCH_PIN		IOPORT_CREATE_PIN(PORTB, 6)
 
 #define STATUS_LED_PIN		IOPORT_CREATE_PIN(PORTD,0)

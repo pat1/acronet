@@ -16,104 +16,94 @@
 #include <stdio.h>
 #include "Acronet/HAL/hal_interface.h"
 #include "Acronet/globals.h"
-#include "hd3910.h"
+#include "Acronet/Sensors/DELTAOHM/HD3910/hd3910.h"
 #include "Acronet/drivers/SP336/SP336.h"
 #include "Acronet/services/MODBUS_RTU/mb_crc.h"
 #include "Acronet/services/MODBUS_RTU/master_rtu.h"
-
-
-
-#if !defined(HD3910_MBUS_CH)
-#pragma message "[!!! PROJECT WARNING !!!] in file " __FILE__\
-" SYMBOL HD3910_MBUS_CH not defined, using default just to compile, your project may not work as aspected"
-#define HD3910_MBUS_CH	0
-#endif
 
 
 #define HD3910_MEASURES_NUMBER	32
 #define HD3910_DATABUFSIZE		17	// Raw measures buffer size. On this measures array statistics are done.
 #define HD3910_MEASUREBUFMID		8   //
 
-typedef struct  
+typedef struct
 {
 	int16_t wvc;
 	int16_t temp;
-} DATAVAL;
+} HD3910_PRIVATE_SAMPLE;
 
-static DATAVAL g_Data[HD3910_DATABUFSIZE];
-static uint8_t g_samples = 0;
-
-//static volatile uint8_t g_DataIsBusy = 0;
-
-
-
-//static void t023_rx(const char c)
-//{
-////	usart_putchar(USART_DEBUG,c);
-////	NMEALine_addChar(c);
-//}
-
-
-static uint8_t medianInsert_right(DATAVAL val,uint8_t pos)
+typedef struct
 {
-	DATAVAL v0 = val;
+	MBUS_PDU pdu;
+
+	HD3910_PRIVATE_SAMPLE g_Data[HD3910_DATABUFSIZE];
+	uint8_t g_samples;
+
+	volatile uint8_t g_DataIsBusy;
+} HD3910_PRIVATE_DATA;
+
+
+
+static uint8_t medianInsert_right(HD3910_PRIVATE_DATA * const pSelf,HD3910_PRIVATE_SAMPLE val,uint8_t pos)
+{
+	HD3910_PRIVATE_SAMPLE v0 = val;
 	for(uint8_t idx=pos;idx<HD3910_DATABUFSIZE;++idx)
 	{
-		const DATAVAL a = g_Data[idx];
-		const DATAVAL v1 = (a.wvc==0)?v0:a;
-		g_Data[idx] = v0;
+		const HD3910_PRIVATE_SAMPLE a = pSelf->g_Data[idx];
+		const HD3910_PRIVATE_SAMPLE v1 = (a.wvc==0)?v0:a;
+		pSelf->g_Data[idx] = v0;
 		v0 = v1;
 	}
 	return 0;
 }
 
-static uint8_t medianInsert_left(DATAVAL val,uint8_t pos)
+static uint8_t medianInsert_left(HD3910_PRIVATE_DATA * const pSelf,HD3910_PRIVATE_SAMPLE val,uint8_t pos)
 {
-	DATAVAL v0 = val;
+	HD3910_PRIVATE_SAMPLE v0 = val;
 	uint8_t idx=pos;
 	do 
 	{
-		const DATAVAL a = g_Data[idx];
-		const DATAVAL v1 = (a.wvc==0)?v0:a;
-		g_Data[idx] = v0;
+		const HD3910_PRIVATE_SAMPLE a = pSelf->g_Data[idx];
+		const HD3910_PRIVATE_SAMPLE v1 = (a.wvc==0)?v0:a;
+		pSelf->g_Data[idx] = v0;
 		v0 = v1;
 	} while (idx-- != 0);
 	
 	return 0;
 }
 
-static uint8_t medianInsert(const DATAVAL val)
+static uint8_t medianInsert(HD3910_PRIVATE_DATA * const pSelf,const HD3910_PRIVATE_SAMPLE val)
 {
 	uint8_t idx;
-	const DATAVAL vm = g_Data[HD3910_MEASUREBUFMID];
+	const HD3910_PRIVATE_SAMPLE vm = pSelf->g_Data[HD3910_MEASUREBUFMID];
 	
 	//if (vm==0) {
 	//return medianInsert_right(val,0);
 	//} else
 	if (val.wvc<vm.wvc) {
 		for(idx=HD3910_MEASUREBUFMID;idx>0;--idx) {
-			const DATAVAL vr = g_Data[idx];
-			const DATAVAL vl = g_Data[idx-1];
+			const HD3910_PRIVATE_SAMPLE vr = pSelf->g_Data[idx];
+			const HD3910_PRIVATE_SAMPLE vl = pSelf->g_Data[idx-1];
 			if ((val.wvc>=vl.wvc) && (val.wvc<=vr.wvc)) {
-				return medianInsert_right(val,idx);
+				return medianInsert_right(pSelf,val,idx);
 			}
 		}
 		//New Minimum, it also manage the undef value
-		return medianInsert_right(val,0);
+		return medianInsert_right(pSelf,val,0);
 
 		} else if(val.wvc>vm.wvc)	{
 		for(idx=HD3910_MEASUREBUFMID;idx<HD3910_DATABUFSIZE-1;++idx) {
-			const DATAVAL vl = g_Data[idx];
-			const DATAVAL vr = g_Data[idx+1];
+			const HD3910_PRIVATE_SAMPLE vl = pSelf->g_Data[idx];
+			const HD3910_PRIVATE_SAMPLE vr = pSelf->g_Data[idx+1];
 			if ((val.wvc>=vl.wvc) && (val.wvc<=vr.wvc)) {
-				return medianInsert_left(val,idx);
+				return medianInsert_left(pSelf,val,idx);
 			}
 		}
 		//New Maximum
-		return medianInsert_left(val,HD3910_DATABUFSIZE-1);
+		return medianInsert_left(pSelf,val,HD3910_DATABUFSIZE-1);
 		} else if (val.wvc==vm.wvc) {
-		medianInsert_right(val,HD3910_MEASUREBUFMID);
-		medianInsert_left(val,HD3910_MEASUREBUFMID);
+		medianInsert_right(pSelf,val,HD3910_MEASUREBUFMID);
+		medianInsert_left(pSelf,val,HD3910_MEASUREBUFMID);
 	}
 
 	return 0;
@@ -121,14 +111,17 @@ static uint8_t medianInsert(const DATAVAL val)
 
 
 
-RET_ERROR_CODE hd3910_init(void)
+static RET_ERROR_CODE hd3910_init(HD3910_PRIVATE_DATA * const pSelf)
 {
-	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"T023 Init");
+	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"HD3910 Init");
+
+	pSelf->g_samples = 0;
+	MBUS_PDU_reset( &pSelf->pdu );
 
 	return AC_ERROR_OK;
 }
 
-void hd3910_enable(void)
+static void hd3910_enable(void)
 {
 	//usart_set_rx_interrupt_level(SP336_USART0,USART_INT_LVL_LO);
 	//usart_rx_enable(SP336_USART0);
@@ -136,16 +129,16 @@ void hd3910_enable(void)
 	/* ToDo */
 }
 
-void hd3910_disable(void)
+static void hd3910_disable(void)
 {
 	/* ToDo */
 }
 
-RET_ERROR_CODE hd3910_get_data(HD3910_DATA * const ps)
+static RET_ERROR_CODE hd3910_get_data(HD3910_PRIVATE_DATA * const pSelf,HD3910_DATA * const ps)
 {
-	ps->wvc  = g_Data[HD3910_MEASUREBUFMID].wvc;
-	ps->temp = g_Data[HD3910_MEASUREBUFMID].temp;
-	ps->samples = g_samples;
+	ps->wvc  = pSelf->g_Data[HD3910_MEASUREBUFMID].wvc;
+	ps->temp = pSelf->g_Data[HD3910_MEASUREBUFMID].temp;
+	ps->samples = pSelf->g_samples;
 	
 	
 	return AC_ERROR_OK;
@@ -164,16 +157,16 @@ static int16_t interpret_pdu_ab_int16(uint8_t * const pData)
 	return v.ival;	
 }
 
-static void interpret_pdu(MBUS_PDU * const pPDU)
+static void interpret_pdu(HD3910_PRIVATE_DATA * const pSelf)
 {
-	if (g_samples > 254) {
+	if (pSelf->g_samples > 254) {
 		return;
 	}
 
-	DATAVAL dv;
+	HD3910_PRIVATE_SAMPLE dv;
 							
-	const float temp = interpret_pdu_ab_int16( &(pPDU->data.byte[6]) );
-	const float wvc  = interpret_pdu_ab_int16( &(pPDU->data.byte[2]) );
+	const float temp = interpret_pdu_ab_int16( &(pSelf->pdu.data.byte[6]) );
+	const float wvc  = interpret_pdu_ab_int16( &(pSelf->pdu.data.byte[2]) );
 	
 	if(wvc==-9999.0F) {
 		debug_string_1P(NORMAL,PSTR("[WARNING] Invalid value"));
@@ -188,59 +181,15 @@ static void interpret_pdu(MBUS_PDU * const pPDU)
 	sprintf_P(szBUF,PSTR(" (%d , %d)\r\n"),dv.wvc,dv.temp);
 	debug_string(NORMAL,szBUF,RAM_STRING);
 
-	medianInsert(dv);
-	g_samples++;
+	medianInsert(pSelf,dv);
+	pSelf->g_samples++;
 }
 
-bool hd3910_Yield( void )
+static RET_ERROR_CODE hd3910_reset_data(HD3910_PRIVATE_DATA * const pSelf)
 {
-	static MBUS_PDU g_mbp = {0};
-
-	while(! MBUS_IS_EMPTY(HD3910_MBUS_CH) )
-	{
-		const uint8_t b = MBUS_GET_BYTE(HD3910_MBUS_CH);
-		if ( MBUS_STATUS_END == MBUS_BUILD_DGRAM(HD3910_MBUS_CH,&g_mbp,b) )
-		{
-			usart_putchar(USART_DEBUG,'y');
-
-			const uint16_t crcc = MBUS_GET_CRC(HD3910_MBUS_CH);
-			const uint16_t crcp =( (((uint16_t) g_mbp.crc_hi) << 8) | g_mbp.crc_lo );
-			if (crcc == crcp)
-			{
-				usart_putchar(USART_DEBUG,'u');
-				interpret_pdu(&g_mbp);
-			} else {
-				char szBUF[64];
-				sprintf_P(szBUF,PSTR("%04X != %04X\r\n"),crcc,crcp);
-				debug_string(NORMAL,szBUF,RAM_STRING);
-			}
-			MBUS_RELEASE(HD3910_MBUS_CH);
-		}
-//		usart_putchar(USART_DEBUG,'Y');
-				
-		return true;
-	}
-	return false;
-}
-
-void hd3910_periodic(void)
-{
-	static const __flash uint8_t cmd[] = {0x1B,0x04,0x00,0x00,0x00,0x04,0xF3,0xF3};
-
-	if ( AC_ERROR_OK != MBUS_LOCK(HD3910_MBUS_CH) )
-	{
-		return;
-	}
-
-	usart_putchar(USART_DEBUG,'p');
-	uint8_t buf[16];
-	memcpy_P(buf,cmd,8);
-	MBUS_ISSUE_CMD(HD3910_MBUS_CH,buf,8);
-}
-
-RET_ERROR_CODE hd3910_reset_data(void)
-{
-	g_samples = 0;
+	pSelf->g_samples = 0;
+	MBUS_PDU_reset(&(pSelf->pdu));
+	
 	return AC_ERROR_OK;
 }
 
@@ -273,3 +222,9 @@ RET_ERROR_CODE hd3910_Data2String_RMAP(	 uint8_t * const subModule
 
 #endif //RMAP_SERVICES
 
+#define MODULE_INTERFACE_PRIVATE_DATATYPE HD3910_PRIVATE_DATA
+
+
+#define MODINST_PARAM_ID MOD_ID_HD3910_MODBUS
+#include "Acronet/datalogger/modinst/module_interface_definition.h"
+#undef MODINST_PARAM_ID

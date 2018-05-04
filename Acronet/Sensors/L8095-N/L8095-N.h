@@ -16,16 +16,6 @@
 #ifndef L8095N_H_
 #define L8095N_H_
 
-//#define L8095N_PUSART			SP336_USART1
-//#define L8095N_PIN_TX_ENABLE	SP336_USART1_PIN_TX_ENABLE
-//#define L8095N_PIN_TX_SIGNAL	SP336_USART1_PIN_TX_SIGNAL
-//#define L8095N_PIN_RX_SIGNAL	SP336_USART1_PIN_RX_SIGNAL
-
-//#define L8095N_PUSART			SP336_USART0
-//#define L8095N_PIN_TX_ENABLE	SP336_USART0_PIN_TX_ENABLE
-//#define L8095N_PIN_TX_SIGNAL	SP336_USART0_PIN_TX_SIGNAL
-//#define L8095N_PIN_RX_SIGNAL	SP336_USART0_PIN_RX_SIGNAL
-
 enum {		L8095N_STAT_BEG=0,
 			L8095N_STAT_PRESSURE=L8095N_STAT_BEG,
 			L8095N_STAT_TEMPERATURE,
@@ -43,29 +33,36 @@ typedef struct
 } L8095N_DATA;
 
 
-RET_ERROR_CODE l8095n_init(void);
+#define MODULE_PUBLIC_DATATYPE L8095N_DATA
 
+#define MODULE_CHANNEL_GLUE_FILE "Acronet/Sensors/L8095-N/L8095-N.glue.h"
 
-RET_ERROR_CODE l8095n_get_data(L8095N_DATA * const ps);
-RET_ERROR_CODE l8095n_reset_data(void);
-RET_ERROR_CODE l8095n_Data2String(	 const L8095N_DATA * const st
-									,char * const sz
-									,uint16_t * len_sz);
+#define MODULE_INTERFACE_INIT l8095n_init
+#define MODULE_INTERFACE_ENABLE l8095n_enable
+#define MODULE_INTERFACE_DISABLE l8095n_disable
+#define MODULE_INTERFACE_YIELD l8095n_Yield
+#define MODULE_INTERFACE_RESET l8095n_reset_data
+#define MODULE_INTERFACE_GETDATA l8095n_get_data
+#define MODULE_INTERFACE_DATA2STRING l8095n_Data2String
 
-#ifdef RMAP_SERVICES
-RET_ERROR_CODE l8095n_Data2String_RMAP(	 uint8_t * const subModule
-										,const L8095N_DATA * const st
-										,const uint32_t timeStamp
-										,const uint16_t timeWindow
-										,char * const szTopic
-										,int16_t * const len_szTopic
-										,char * const szMessage
-										,int16_t * const len_szMessage );
-#endif
+#if defined(RMAP_SERVICES)
+#define MODULE_INTERFACE_DATA2STRING_RMAP l8095n_Data2String_RMAP
+#endif //RMAP_SERVICES
 
-void l8095n_enable(void);
-void l8095n_disable(void);
+#define MODINST_PARAM_ID MOD_ID_L8095N
+#include "Acronet/datalogger/modinst/module_interface_declaration.h"
 
-bool l8095n_Yield(void);
+#undef MODINST_PARAM_ID
+/*
+#undef MODULE_PUBLIC_DATATYPE
+
+#undef MODULE_INTERFACE_INIT
+#undef MODULE_INTERFACE_ENABLE
+#undef MODULE_INTERFACE_DISABLE
+#undef MODULE_INTERFACE_YIELD
+#undef MODULE_INTERFACE_RESET
+#undef MODULE_INTERFACE_GETDATA
+#undef MODULE_INTERFACE_DATA2STRING
+*/
 
 #endif /* L8095N_H_ */

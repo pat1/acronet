@@ -219,7 +219,7 @@ static float sens_it_compute_stats(const uint8_t id)
 	return g_stats[id];
 }
 
-RET_ERROR_CODE sens_it_get_data(SENSIT_STATS * const ps)
+RET_ERROR_CODE sens_it_get_data(SENSIT_DATA * const ps)
 {
 	for(uint8_t ix = SENSIT_STAT_BEG;ix<SENSIT_STAT_END;++ix)
 	{
@@ -245,7 +245,7 @@ RET_ERROR_CODE sens_it_reset_data(void)
 	return AC_ERROR_OK;
 }
 
-RET_ERROR_CODE sens_it_Data2String(const SENSIT_STATS * const st,char * const sz, uint16_t * len_sz)
+RET_ERROR_CODE sens_it_Data2String(const SENSIT_DATA * const st,char * const sz, uint16_t * len_sz)
 {
 	uint16_t len = 0;
 	char sBuf[12] = "&";

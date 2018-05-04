@@ -22,6 +22,7 @@
 #include <conf_board.h>
 #include <conf_usart_serial.h>
 #include "config/conf_usart_serial.h"
+#include "Acronet/services/NMEA/nmea.h"
 #include "Acronet/drivers/SP336/SP336.h"
 #include "Acronet/Sensors/LB150/LB150.h"
 #include "Acronet/services/config/config.h"
@@ -107,6 +108,15 @@ enum {	LB150_STAT_OPERATOR_MEAN
 	   ,LB150_STAT_OPERATOR_END	};
 
 
+typedef struct
+{
+	float   g_data   [LB150_STAT_END];
+	uint8_t g_samples[LB150_STAT_END];
+
+	
+} L8095N_PRIVATE_DATA;
+
+
 typedef struct {
 	char m_fmt[8];
 	uint16_t m_fct;
@@ -185,22 +195,22 @@ enum {	NMEA_FIRST_ENTRY = 0,
 
 #define NUM_OF_NMEA_in (sizeof(tbl_NMEAin)/sizeof(char *))
 
-static void LB150_NMEA_Handler_GPDTM(char * const psz);
-static void LB150_NMEA_Handler_GPGGA(char * const psz);
-static void LB150_NMEA_Handler_GPGLL(char * const psz);
-static void LB150_NMEA_Handler_GPGSA(char * const psz);
-static void LB150_NMEA_Handler_GPGSV(char * const psz);
-static void LB150_NMEA_Handler_HCHDG(char * const psz);
-static void LB150_NMEA_Handler_HCHDT(char * const psz);
-static void LB150_NMEA_Handler_WIMDA(char * const psz);
-static void LB150_NMEA_Handler_WIMWD(char * const psz);
-static void LB150_NMEA_Handler_WIMWV(char * const psz);
-static void LB150_NMEA_Handler_GPRMC(char * const psz);
-static void LB150_NMEA_Handler_GPVTG(char * const psz);
-static void LB150_NMEA_Handler_WIVWR(char * const psz);
-static void LB150_NMEA_Handler_WIVWT(char * const psz);
-static void LB150_NMEA_Handler_YXXDR(char * const psz);
-static void LB150_NMEA_Handler_GPZDA(char * const psz);
+static void LB150_NMEA_Handler_GPDTM(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPGGA(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPGLL(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPGSA(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPGSV(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_HCHDG(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_HCHDT(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_WIMDA(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_WIMWD(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_WIMWV(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPRMC(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPVTG(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_WIVWR(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_WIVWT(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_YXXDR(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPZDA(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
 
 typedef void (*NMEA_FN_HANDLER)(char * const);
 
@@ -223,111 +233,6 @@ static const NMEA_FN_HANDLER tbl_NMEAfn[] PROGMEM = {
 												LB150_NMEA_Handler_GPZDA
 												};
 	
-	
-	
-
-
-//USART_data_t g_LB150_usart_data;
-
-
-static void LB150_rx(const char c);
-
-static volatile char g_szNMEALine[1024];
-static volatile uint16_t g_idxBufferNMEALine;
-static volatile uint16_t g_idxProcessNMEALine;
-
-
-static void NMEALine_reset(void)
-{
-	g_szNMEALine[0] = 0;
-	g_idxBufferNMEALine = 0;
-	g_idxProcessNMEALine = 0;
-}
-
-static char NMEALine_getChar(void)
-{
-	
-	//TODO: add critical section here ?
-	
-	if(g_idxBufferNMEALine == 0) return 0;
-	const char c = g_szNMEALine[g_idxProcessNMEALine++];
-	if(g_idxProcessNMEALine==g_idxBufferNMEALine) {
-		NMEALine_reset();
-	}
-
-	return c;
-}
- 
- 
-static void NMEALine_addChar(const char c)
-{
-	if(g_idxBufferNMEALine<sizeof(g_szNMEALine)) {
-		g_szNMEALine[g_idxBufferNMEALine++]=c;
-	}
-}
-
-static uint8_t NMEALine_Tokenize(char * psz,char ** pNext)
-{
-	uint8_t i = 0;
-	char * const p = psz;
-	
-	do {
-		const char c = p[i];
-		if(c==',') {
-			p[i] = 0;
-			*pNext = p+(i+1);
-			return i;
-		} 
-		
-		if(c==0) {
-			*pNext = NULL;
-			return i;
-		}
-	} while(++i<NMEA_SENTENCE_MAX_LENGTH);
-	
-	*pNext = NULL;
-	return 0;
-}
-
-static uint8_t __attribute__((const)) ascii_hex(const uint8_t c)
-{
-	if((c>47) && (c<58)) { // 0 to 9
-		return (c-48);
-		} else if((c>64) && (c<71)) { // A to F
-		return (c-55);
-		} else if((c>96) && (c<103)) { // a to f
-		return (c-87);
-	}
-	
-	//ERROR TO HANDLE
-	
-	return 0xFF;
-}
-
-
-static uint8_t NMEALine_checksum_check(char * const psz,const uint8_t len_sz)
-{
-	uint8_t ix = 0;
-	uint8_t r = 0;
-	if(len_sz<10) {
-		return 1;
-	}
-	if(psz[ix]=='$') ix++;
-	while (ix<len_sz)
-	{
-		const char c = psz[ix++];
-		if(c=='*') break;
-		r ^= c;
-	}
-	
-	uint8_t cs = (ascii_hex(psz[ix])<<4) | ascii_hex(psz[ix+1]);
-	if (r!=cs)
-	{
-		debug_string_2P(NORMAL,PSTR("LB150 NMEA"),PSTR("CHECKSUM MISMATCH"));
-		return 0xFF;
-	} 
-	return 0;
-}
 
 RET_ERROR_CODE LB150_Data2String(const LB150_DATA * const st,char * const sz, int16_t * const len_sz)
 {
@@ -360,82 +265,15 @@ RET_ERROR_CODE LB150_Data2String(const LB150_DATA * const st,char * const sz, in
 	return AC_ERROR_OK;
 }
 
-void LB150_enable( void )
-{
-	usart_rx_enable(LB150_PUSART);
-}
-
-void LB150_disable( void )
-{
-	usart_rx_disable(LB150_PUSART);
-}
-
-#define SWITCH_PIN					IOPORT_CREATE_PIN(PORTD, 1)
+//#define SWITCH_PIN					IOPORT_CREATE_PIN(PORTD, 1)
 
 static void	LB150_powercycle(void)
 {
 //	return;
-	gpio_toggle_pin(SWITCH_PIN);
-	delay_ms(3000);
-	gpio_toggle_pin(SWITCH_PIN);
-	delay_ms(3000);
-}
-
-
-RET_ERROR_CODE LB150_init(void)
-{
-	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"LB150 Init");
-	NMEALine_reset();
-	LB150_reset_data();
-		
-	//usart_interruptdriver_initialize(&g_LB150_usart_data,LB150_PUSART,USART_INT_LVL_LO);
-
-	ioport_configure_pin(SWITCH_PIN, IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
-
-	LB150_powercycle();
-	
-	//LB150 sensor
-	ioport_configure_pin(LB150_PIN_TX_ENABLE, IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
-	ioport_configure_pin(LB150_PIN_TX_SIGNAL, IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
-	ioport_configure_pin(LB150_PIN_RX_SIGNAL, IOPORT_DIR_INPUT);
-
-	
-	static usart_rs232_options_t usart_options = {
-		.baudrate = 4800,
-		.charlength = USART_CHSIZE_8BIT_gc,
-		.paritytype = USART_PMODE_DISABLED_gc,
-		.stopbits = false
-	};
-	
-	
-	
-	SP336_Config(LB150_PUSART,&usart_options);
-	usart_tx_enable(LB150_PUSART);
-	SP336_RegisterCallback(LB150_PUSART,LB150_rx);
-
-	char sz[32];
-
-	strcpy_P(sz,PSTR("$PAMTC,EN,ALL,0\r\n"));
-	SP336_PutString(LB150_PUSART,sz);
-	//delay_s(1);
-	//strcpy_P(sz,PSTR("$PAMTC,SIM,1*2D\r\n"));
-	//SP336_PutString(LB150_PUSART,sz);
-	delay_ms(1000);
-	strcpy_P(sz,PSTR("$PAMTC,EN,MDA,1,100\r\n"));
-	SP336_PutString(LB150_PUSART,sz);
-	delay_ms(1000);
-	strcpy_P(sz,PSTR("$PAMTC,EN,MWD,1,30\r\n"));
-	SP336_PutString(LB150_PUSART,sz);
-	delay_ms(1000);
-#ifdef LB150_ENABLE_GPS
-	strcpy_P(sz,PSTR("$PAMTC,EN,GLL,1,100\r\n"));
-	SP336_PutString(LB150_PUSART,sz);
-#endif
-
-	usart_rx_disable(LB150_PUSART);
-	usart_tx_disable(LB150_PUSART);
-
-	return AC_ERROR_OK;
+	//gpio_toggle_pin(SWITCH_PIN);
+	//delay_ms(3000);
+	//gpio_toggle_pin(SWITCH_PIN);
+	//delay_ms(3000);
 }
 
 
@@ -454,7 +292,7 @@ static void LB150_process_NMEA_Statement(char * const psz)
 	}
 }
 
-
+/*
 bool LB150_Yield( void )
 {
 	static char szBuf[128];
@@ -487,90 +325,80 @@ bool LB150_Yield( void )
 	}
 	return false;
 }
+*/
 
-void LB150_rx(const char c)
-{
-	usart_putchar(USART_DEBUG,c);
-	NMEALine_addChar(c);
-}
-
-
-
-static void LB150_NMEA_Handler_GPDTM(char * const psz)
+static void LB150_NMEA_Handler_GPDTM(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPDTM (empty)");
 }
 
-static void LB150_NMEA_Handler_GPGGA(char * const psz)
+static void LB150_NMEA_Handler_GPGGA(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPGGA (empty)");
 }
 
 
 
-static void LB150_NMEA_Handler_GPGSA(char * const psz)
+static void LB150_NMEA_Handler_GPGSA(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPGSA (empty)");
 }
 
-static void LB150_NMEA_Handler_GPGSV(char * const psz)
+static void LB150_NMEA_Handler_GPGSV(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPGSV (empty)");
 }
 
-static void LB150_NMEA_Handler_HCHDG(char * const psz)
+static void LB150_NMEA_Handler_HCHDG(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_HCHDG (empty)");
 }
 
-static void LB150_NMEA_Handler_HCHDT(char * const psz)
+static void LB150_NMEA_Handler_HCHDT(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_HCHDT (empty)");
 }
 
-static float g_data[LB150_STAT_END];
-static uint8_t g_samples[LB150_STAT_END];
 
-
-static float LB150_compute_stats(const uint8_t id)
+static float LB150_compute_stats(L8095N_PRIVATE_DATA * const pSelf,const uint8_t id)
 {
-	if (g_samples[id]==0) { return -9999.0F; }
+	if (pSelf->g_samples[id]==0) { return -9999.0F; }
 	
 
 	const uint8_t op = nvm_flash_read_byte( (flash_addr_t) &g_stat_fmt[id].m_oper);
 	
 	if(op==LB150_STAT_OPERATOR_MEAN) {
-		return g_data[id] / g_samples[id];
+		return pSelf->g_data[id] / pSelf->g_samples[id];
 	} 
 	
-	return g_data[id];
+	return pSelf->g_data[id];
 }
 
 
-RET_ERROR_CODE LB150_get_data(LB150_DATA * const ps)
+static RET_ERROR_CODE LB150_get_data(L8095N_PRIVATE_DATA * const pSelf,LB150_DATA * const ps)
 {
 	for(uint8_t ix = LB150_STAT_BEG;ix<LB150_STAT_END;++ix)
 	{
-		ps->m_stat[ix] = LB150_compute_stats(ix);
+		ps->m_stat[ix] = LB150_compute_stats(pSelf,ix);
 	}
 
 	return AC_ERROR_OK;
 }
 
 
-RET_ERROR_CODE LB150_reset_data(void)
+static RET_ERROR_CODE LB150_reset_data(L8095N_PRIVATE_DATA * const pSelf)
 {
 
 	for(uint8_t ix = LB150_STAT_BEG;ix<LB150_STAT_END;++ix)
 	{
-		g_samples[ix] = 0;
+		pSelf->g_samples[ix] = 0;
 	}
 
 
 	return AC_ERROR_OK;
 }
 
-static void LB150_NMEA_UpdateStats(const uint8_t id,const char * const p)
+static void LB150_NMEA_UpdateStats(L8095N_PRIVATE_DATA * const pSelf,const uint8_t id,const char * const p)
 {
 	const float val = atof(p);
 	uint8_t op;
@@ -586,40 +414,40 @@ static void LB150_NMEA_UpdateStats(const uint8_t id,const char * const p)
 	
 	if(op==LB150_STAT_OPERATOR_MEAN) {
 		
-		if(g_samples[id]==0) {
-			g_data[id]=val;
+		if(pSelf->g_samples[id]==0) {
+			pSelf->g_data[id]=val;
 		} else {
-			g_data[id]+=val;
+			pSelf->g_data[id]+=val;
 		}
 		
 	} else if(op==LB150_STAT_OPERATOR_MAX) {
 		
-		if(g_samples[id]==0) {
-			g_data[id]=val;
+		if(pSelf->g_samples[id]==0) {
+			pSelf->g_data[id]=val;
 		} else {
-			if(g_data[id]<val) {g_data[id]=val;}
+			if(pSelf->g_data[id]<val) {pSelf->g_data[id]=val;}
 		}
 		
 	} else if(op==LB150_STAT_OPERATOR_MIN) {
 
-		if(g_samples[id]==0) {
-			g_data[id]=val;
+		if(pSelf->g_samples[id]==0) {
+			pSelf->g_data[id]=val;
 		} else {
-			if(g_data[id]>val) {g_data[id]=val;}
+			if(pSelf->g_data[id]>val) {pSelf->g_data[id]=val;}
 		}
 
 	} else if(op==LB150_STAT_OPERATOR_GUST_SPEED) {
-		if(g_samples[id]==0) {
-			g_data[id]=val;
+		if(pSelf->g_samples[id]==0) {
+			pSelf->g_data[id]=val;
 		} else {
-			if(g_data[id]<val) {g_data[id]=val;}
+			if(pSelf->g_data[id]<val) {pSelf->g_data[id]=val;}
 		}
-		g_data[LB150_STAT_WINDIR_GUST] = gust_temp;
-		g_samples[LB150_STAT_WINDIR_GUST] = 1;
+		pSelf->g_data[LB150_STAT_WINDIR_GUST] = gust_temp;
+		pSelf->g_samples[LB150_STAT_WINDIR_GUST] = 1;
 
 	}
 
-	g_samples[id]++;
+	pSelf->g_samples[id]++;
 
 
 
@@ -629,42 +457,42 @@ static void LB150_NMEA_UpdateStats(const uint8_t id,const char * const p)
 
 }
 
-static void LB150_process_Barometric_pressure(const char * const p)
+static void LB150_process_Barometric_pressure(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
 {
-	LB150_NMEA_UpdateStats(LB150_STAT_PRESSURE,p);
+	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_PRESSURE,p);
 }
 
-static void LB150_process_temperature(const char * const p)
+static void LB150_process_temperature(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
 {
-	LB150_NMEA_UpdateStats(LB150_STAT_TEMPERATURE,p);
-	LB150_NMEA_UpdateStats(LB150_STAT_TEMPERATURE_MAX,p);
-	LB150_NMEA_UpdateStats(LB150_STAT_TEMPERATURE_MIN,p);
+	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_TEMPERATURE,p);
+	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_TEMPERATURE_MAX,p);
+	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_TEMPERATURE_MIN,p);
 }
 
-static void LB150_process_RH(const char * const p)
+static void LB150_process_RH(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
 {
-	LB150_NMEA_UpdateStats(LB150_STAT_RH,p);
+	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_RH,p);
 }
 
-static void LB150_process_DEWPoint(const char * const p)
+static void LB150_process_DEWPoint(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
 {
-	LB150_NMEA_UpdateStats(LB150_STAT_DEWPOINT,p);
+	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_DEWPOINT,p);
 }
 
-static void LB150_process_WinDir(const char * const p)
+static void LB150_process_WinDir(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
 {
-	LB150_NMEA_UpdateStats(LB150_STAT_WINDIR,p);
-	LB150_NMEA_UpdateStats(LB150_STAT_WINDIR_GUST,p);
+	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_WINDIR,p);
+	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_WINDIR_GUST,p);
 	
 }
 
-static void LB150_process_WindSpeed(const char * const p)
+static void LB150_process_WindSpeed(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
 {
-	LB150_NMEA_UpdateStats(LB150_STAT_WINSPEED,p);
-	LB150_NMEA_UpdateStats(LB150_STAT_WINSPEED_GUST,p);
+	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_WINSPEED,p);
+	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_WINSPEED_GUST,p);
 }
 
-static void LB150_NMEA_Handler_WIMDA(char * const psz)
+static void LB150_NMEA_Handler_WIMDA(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 //	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_WIMDA");
 
@@ -678,23 +506,23 @@ static void LB150_NMEA_Handler_WIMDA(char * const psz)
 	v = NMEALine_Tokenize(q,&p); //Barometric pressure, name of dimension ( I = inches)
 
 	v = NMEALine_Tokenize(p,&q); //Barometric pressure, bars, to the nearest .001 bar
-	if(v!=0) {LB150_process_Barometric_pressure(p);}
+	if(v!=0) {LB150_process_Barometric_pressure(pSelf,p);}
 	v = NMEALine_Tokenize(q,&p); //Barometric pressure, name of dimension ( B = bars)
 
 	v = NMEALine_Tokenize(p,&q); //Air temperature, degrees C, to the nearest 0.1 degree C
-	if(v!=0) {LB150_process_temperature(p);}
+	if(v!=0) {LB150_process_temperature(pSelf,p);}
 	v = NMEALine_Tokenize(q,&p); //Air temperature, C = degrees C
 
 	v = NMEALine_Tokenize(p,&q); //Water temperature, degrees C (this field left blank by WeatherStation)
 	v = NMEALine_Tokenize(q,&p); //C = degrees C (this field left blank by WeatherStation)
 	
 	v = NMEALine_Tokenize(p,&q); //Relative humidity, percent, to the nearest 0.1 percent
-	if(v!=0) {LB150_process_RH(p);}
+	if(v!=0) {LB150_process_RH(pSelf,p);}
 
 	v = NMEALine_Tokenize(q,&p); //Absolute humidity, percent (this field left blank by WeatherStation)
 	
 	v = NMEALine_Tokenize(p,&q); //Dew point, degrees C, to the nearest 0.1 degree C
-	if(v!=0) {LB150_process_DEWPoint(p);}
+	if(v!=0) {LB150_process_DEWPoint(pSelf,p);}
 	v = NMEALine_Tokenize(q,&p); //C = degrees C
 
 // 	v = NMEALine_Tokenize(p,&q); //Wind direction, degrees True, to the nearest 0.1 degree
@@ -714,7 +542,7 @@ static void LB150_NMEA_Handler_WIMDA(char * const psz)
 		
 }
 
-static void LB150_NMEA_Handler_WIMWD(char * const psz)
+static void LB150_NMEA_Handler_WIMWD(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 //	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_WIMWD");
 //	debug_string(NORMAL,psz,RAM_STRING);
@@ -724,7 +552,7 @@ static void LB150_NMEA_Handler_WIMWD(char * const psz)
 	uint8_t v;
 
 	v = NMEALine_Tokenize(p,&q); //Wind direction, degrees True, to the nearest 0.1 degree
-	if(v!=0) {LB150_process_WinDir(p);}
+	if(v!=0) {LB150_process_WinDir(pSelf,p);}
 	v = NMEALine_Tokenize(q,&p); //T = true
 
 	v = NMEALine_Tokenize(p,&q); //Wind direction, degrees Magnetic, to the nearest 0.1 degree
@@ -734,60 +562,60 @@ static void LB150_NMEA_Handler_WIMWD(char * const psz)
 	v = NMEALine_Tokenize(q,&p); //N = knots
 
 	v = NMEALine_Tokenize(p,&q); //Wind speed, meters per second, to the nearest 0.1 m/s
-	if(v!=0) {LB150_process_WindSpeed(p);}
+	if(v!=0) {LB150_process_WindSpeed(pSelf,p);}
 	v = NMEALine_Tokenize(q,&p); //M = meters per second
 
 }
 
-static void LB150_NMEA_Handler_WIMWV(char * const psz)
+static void LB150_NMEA_Handler_WIMWV(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_WIMWV (empty)");
 }
 
-static void LB150_NMEA_Handler_GPRMC(char * const psz)
+static void LB150_NMEA_Handler_GPRMC(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPRMC (empty)");
 }
 
-static void LB150_NMEA_Handler_GPVTG(char * const psz)
+static void LB150_NMEA_Handler_GPVTG(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPVTG (empty)");
 }
 
-static void LB150_NMEA_Handler_WIVWR(char * const psz)
+static void LB150_NMEA_Handler_WIVWR(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_WIVWR (empty)");
 }
 
-static void LB150_NMEA_Handler_WIVWT(char * const psz)
+static void LB150_NMEA_Handler_WIVWT(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_WIVWT (empty)");
 }
 
-static void LB150_NMEA_Handler_YXXDR(char * const psz)
+static void LB150_NMEA_Handler_YXXDR(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_YXXDR (empty)");
 }
 
-static void LB150_NMEA_Handler_GPZDA(char * const psz)
+static void LB150_NMEA_Handler_GPZDA(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPZDA (empty)");
 }
 
 #ifdef LB150_ENABLE_GPS
-static void LB150_process_GPS_Lat( char * p )
+static void LB150_process_GPS_Lat( L8095N_PRIVATE_DATA * const pSelf,char * const p )
 {
-	LB150_NMEA_UpdateStats(LB150_STAT_LATITUDE,p);
+	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_LATITUDE,p);
 }
 
-static void LB150_process_GPS_Lon( char * p )
+static void LB150_process_GPS_Lon( L8095N_PRIVATE_DATA * const pSelf,char * const p )
 {
-	LB150_NMEA_UpdateStats(LB150_STAT_LONGITUDE,p);
+	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_LONGITUDE,p);
 }
 #endif
 
 
-static void LB150_NMEA_Handler_GPGLL(char * const psz)
+static void LB150_NMEA_Handler_GPGLL(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 #ifdef LB150_ENABLE_GPS
 	
@@ -800,11 +628,11 @@ static void LB150_NMEA_Handler_GPGLL(char * const psz)
 	//debug_string(NORMAL,p,RAM_STRING);
 
 	v = NMEALine_Tokenize(p,&q); //Latitude, to the nearest .0001 minute
-	if(v!=0) {LB150_process_GPS_Lat(p);}
+	if(v!=0) {LB150_process_GPS_Lat(pSelf,p);}
 	v = NMEALine_Tokenize(q,&p); //N = north ; S = South
 
 	v = NMEALine_Tokenize(p,&q); //Longitude,  to the nearest .0001 minute
-	if(v!=0) {LB150_process_GPS_Lon(p);}
+	if(v!=0) {LB150_process_GPS_Lon(pSelf,p);}
 	v = NMEALine_Tokenize(q,&p); //E = east ; W = west
 
 	v = NMEALine_Tokenize(p,&q); //UTC of position, in the form hhmmss

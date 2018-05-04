@@ -27,11 +27,19 @@
 //#define MAXSLOPE_UNDEF_VALUE ((MAXSLOPE_DATATYPE)(-1))
 //#define CENTS_UNDEF_VALUE MAXSLOPE_UNDEF_VALUE
 
+typedef struct
+{
+	RAINGAUGE_DATA raingauge_stats;
+	uint32_t lastTipEpoch[2];
+	uint32_t lastTipMillis[2];
+	uint8_t sig_data = 0;
+	uint8_t tick;
+} RAINGAUGE_PRIVATE_DATA;
 
 
 typedef struct {
-	volatile uint32_t lastTipEpoch[2];
-    volatile uint32_t lastTipMillis[2];
+	uint32_t lastTipEpoch[2];
+    uint32_t lastTipMillis[2];
 } INTERNAL_STATISTICS;
 
 

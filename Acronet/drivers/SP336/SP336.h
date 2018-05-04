@@ -40,7 +40,7 @@ void SP336_RX_Enable (USART_t * const pUsart);
 RET_ERROR_CODE SP336_RegisterCallback (USART_t * const id,SP336_CALLBACK fn);
 
 RET_ERROR_CODE SP336_PutChar (USART_t * const  id, const char c);
-RET_ERROR_CODE SP336_PutString (USART_t * const id, const char * const sz);
+//RET_ERROR_CODE SP336_PutString (USART_t * const id, const char * const sz);
 
 
 

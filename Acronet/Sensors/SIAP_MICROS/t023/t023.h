@@ -21,19 +21,39 @@ typedef struct
 	uint8_t			samples;
 } T023_DATA;
 
-RET_ERROR_CODE t023_init(void);
-void t023_periodic(void);
-void t023_enable(void);
-void t023_disable(void);
-RET_ERROR_CODE t023_get_data(T023_DATA * const);
-RET_ERROR_CODE t023_reset_data(void);
-RET_ERROR_CODE t023_Data2String(const T023_DATA * const st,char * const sz, uint16_t * len_sz);
+#define MODULE_PUBLIC_DATATYPE T023_DATA
 
-bool t023_Yield( void );
-
-#ifdef RMAP_SERVICES
-RET_ERROR_CODE t023_Data2String_RMAP( uint8_t * const subModule ,const T023_DATA * const st ,const uint32_t timeStamp ,const uint16_t timeWindow ,char * const szTopic ,int16_t * const len_szTopic ,char * const szMessage ,int16_t * const len_szMessage );
-#endif
+#define MODULE_CHANNEL_GLUE_FILE "Acronet/Sensors/SIAP_MICROS/t056/t023.glue.h"
 
 
+#define MODULE_INTERFACE_INIT t023_init
+#define MODULE_INTERFACE_ENABLE t023_enable
+#define MODULE_INTERFACE_DISABLE t023_disable
+#define MODULE_INTERFACE_YIELD t023_Yield
+#define MODULE_INTERFACE_RESET t023_reset_data
+#define MODULE_INTERFACE_GETDATA t023_get_data
+#define MODULE_INTERFACE_DATA2STRING t023_Data2String
+
+#if defined(RMAP_SERVICES)
+#define MODULE_INTERFACE_DATA2STRING_RMAP t023_Data2String_RMAP
+#endif //RMAP_SERVICES
+
+#define MODINST_PARAM_ID MOD_ID_T023_MODBUS
+#include "Acronet/datalogger/modinst/module_interface_declaration.h"
+
+
+#undef MODINST_PARAM_ID
+/*
+#undef MODULE_PUBLIC_DATATYPE
+
+#undef MODULE_INTERFACE_INIT
+#undef MODULE_INTERFACE_ENABLE
+#undef MODULE_INTERFACE_DISABLE
+#undef MODULE_INTERFACE_YIELD
+#undef MODULE_INTERFACE_RESET
+#undef MODULE_INTERFACE_GETDATA
+#undef MODULE_INTERFACE_DATA2STRING
+*/
 #endif /* T023_H_ */
+
+

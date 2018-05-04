@@ -196,50 +196,6 @@ static void interpret_pdu(MBUS_PDU * const pPDU)
 	g_samples++;
 }
 
-bool t023_Yield( void )
-{
-	while(! MBUS_IS_EMPTY(T023_MBUS_CH) )
-	{
-		const uint8_t b = MBUS_GET_BYTE(T023_MBUS_CH);
-		if ( MBUS_STATUS_END == MBUS_BUILD_DGRAM(T023_MBUS_CH,&g_mbp,b) )
-		{
-			usart_putchar(USART_DEBUG,'y');
-
-			const uint16_t crcc = MBUS_GET_CRC(T023_MBUS_CH);
-			const uint16_t crcp =( (((uint16_t) g_mbp.crc_hi) << 8) | g_mbp.crc_lo );
-			if (crcc == crcp)
-			{
-				usart_putchar(USART_DEBUG,'u');
-				interpret_pdu(&g_mbp);
-			} else {
-				char szBUF[64];
-				sprintf_P(szBUF,PSTR("%04X != %04X\r\n"),crcc,crcp);
-				debug_string(NORMAL,szBUF,RAM_STRING);
-			}
-			MBUS_RELEASE(T023_MBUS_CH);
-		}
-		usart_putchar(USART_DEBUG,'Y');
-				
-		return true;
-	}
-	return false;
-}
-
-void t023_periodic(void)
-{
-	static const __flash uint8_t cmd[] = {0x15,0x04,0x00,0x00,0x00,0x04,0xF2,0xDD};
-
-	if ( AC_ERROR_OK != MBUS_LOCK(T023_MBUS_CH) )
-	{
-		return;
-	}
-
-	usart_putchar(USART_DEBUG,'p');
-	uint8_t buf[16];
-	memcpy_P(buf,cmd,8);
-	MBUS_ISSUE_CMD(T023_MBUS_CH,buf,8);
-}
-
 RET_ERROR_CODE t023_reset_data(void)
 {
 	g_samples = 0;
@@ -275,3 +231,8 @@ RET_ERROR_CODE t023_Data2String_RMAP(	 uint8_t * const subModule
 
 #endif //RMAP_SERVICES
 
+#define MODULE_INTERFACE_PRIVATE_DATATYPE T023_PRIVATE_DATA
+
+#define MODINST_PARAM_ID MOD_ID_T023_MODBUS
+#include "Acronet/datalogger/modinst/single_module_setup.h"
+#undef MODINST_PARAM_ID

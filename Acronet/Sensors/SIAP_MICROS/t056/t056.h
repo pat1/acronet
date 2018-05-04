@@ -17,23 +17,44 @@
 typedef struct
 {
 	int16_t			levl;
-	int16_t			temp;
 	uint8_t			samples;
 } T056_DATA;
 
-RET_ERROR_CODE t056_init(void);
-void t056_periodic(void);
-void t056_enable(void);
-void t056_disable(void);
-RET_ERROR_CODE t056_get_data(T056_DATA * const);
-RET_ERROR_CODE t056_reset_data(void);
-RET_ERROR_CODE t056_Data2String(const T056_DATA * const st,char * const sz, uint16_t * len_sz);
-
-bool t056_Yield( void );
-
-#ifdef RMAP_SERVICES
-RET_ERROR_CODE t056_Data2String_RMAP( uint8_t * const subModule ,const T056_DATA * const st ,const uint32_t timeStamp ,const uint16_t timeWindow ,char * const szTopic ,int16_t * const len_szTopic ,char * const szMessage ,int16_t * const len_szMessage );
-#endif
+#define MODULE_PUBLIC_DATATYPE T056_DATA
 
 
+#define MODULE_CHANNEL_GLUE_FILE "Acronet/Sensors/SIAP_MICROS/t056/t056.glue.h"
+
+#define MODULE_INTERFACE_INIT t056_init
+#define MODULE_INTERFACE_ENABLE t056_enable
+#define MODULE_INTERFACE_DISABLE t056_disable
+#define MODULE_INTERFACE_YIELD t056_Yield
+#define MODULE_INTERFACE_RESET t056_reset_data
+#define MODULE_INTERFACE_GETDATA t056_get_data
+#define MODULE_INTERFACE_DATA2STRING t056_Data2String
+#define MODULE_INTERFACE_PERIODIC t056_periodic
+
+
+#if defined(RMAP_SERVICES)
+#define MODULE_INTERFACE_DATA2STRING_RMAP t056_Data2String_RMAP
+#endif //RMAP_SERVICES
+
+#define MODINST_PARAM_ID MOD_ID_T056_MODBUS
+#include "Acronet/datalogger/modinst/module_interface_declaration.h"
+
+
+#undef MODINST_PARAM_ID
+/*
+#undef MODULE_PUBLIC_DATATYPE
+
+#undef MODULE_INTERFACE_INIT
+#undef MODULE_INTERFACE_ENABLE
+#undef MODULE_INTERFACE_DISABLE
+#undef MODULE_INTERFACE_YIELD
+#undef MODULE_INTERFACE_RESET
+#undef MODULE_INTERFACE_GETDATA
+#undef MODULE_INTERFACE_DATA2STRING
+*/
 #endif /* T056_H_ */
+
+

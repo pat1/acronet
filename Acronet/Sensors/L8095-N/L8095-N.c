@@ -23,6 +23,7 @@
 #include <conf_board.h>
 #include <conf_usart_serial.h>
 #include "config/conf_usart_serial.h"
+#include "Acronet/services/NMEA/nmea.h"
 #include "Acronet/drivers/SP336/SP336.h"
 #include "Acronet/Sensors/L8095-N/L8095-N.h"
 #include "Acronet/services/config/config.h"
@@ -46,6 +47,19 @@ $WIMHU		| Relative Humidity and Dew Point		|	YES
 
 
 enum {L8095N_STAT_OPERATOR_MEAN,L8095N_STAT_OPERATOR_MAX,L8095N_STAT_OPERATOR_MIN,L8095N_STAT_OPERATOR_END};
+
+typedef struct
+{
+	float   g_data   [L8095N_STAT_END];
+	uint8_t g_samples[L8095N_STAT_END];
+/*
+	volatile char g_szNMEALine[1024];
+	volatile uint16_t g_idxBufferNMEALine;
+	volatile uint16_t g_idxProcessNMEALine;
+*/
+	volatile uint8_t sig_data_busy;
+	
+} L8095N_PRIVATE_DATA;
 
 
 typedef struct {
@@ -85,11 +99,11 @@ enum {	NMEA_FIRST_ENTRY = 0,
 
 #define NUM_OF_NMEA_in (sizeof(tbl_NMEAin)/sizeof(char *))
 
-static void L8095N_NMEA_Handler_WIMTA(char * const psz);
-static void L8095N_NMEA_Handler_WIMMB(char * const psz);
-static void L8095N_NMEA_Handler_WIMHU(char * const psz);
+static void L8095N_NMEA_Handler_WIMTA(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void L8095N_NMEA_Handler_WIMMB(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void L8095N_NMEA_Handler_WIMHU(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
 
-typedef void (*NMEA_FN_HANDLER)(char * const);
+typedef void (*NMEA_FN_HANDLER)(L8095N_PRIVATE_DATA * const pSelf,char * const);
 
 static const NMEA_FN_HANDLER tbl_NMEAfn[] PROGMEM = {
 												L8095N_NMEA_Handler_WIMTA,
@@ -104,123 +118,7 @@ static const NMEA_FN_HANDLER tbl_NMEAfn[] PROGMEM = {
 //USART_data_t g_l8095n_usart_data;
 
 
-static void l8095n_rx(const char c);
-
-static float   g_data   [L8095N_STAT_END];
-static uint8_t g_samples[L8095N_STAT_END];
-
-static volatile char g_szNMEALine[1024];
-static volatile uint16_t g_idxBufferNMEALine;
-static volatile uint16_t g_idxProcessNMEALine;
-
-static volatile uint8_t sig_data_busy = 0;
-
-static void NMEALine_reset(void)
-{
-	g_szNMEALine[0] = 0;
-	g_idxBufferNMEALine = 0;
-	g_idxProcessNMEALine = 0;
-}
-
-static char NMEALine_getChar(void)
-{
-	
-	//TODO: add critical section here ?
-	
-	if(g_idxBufferNMEALine == 0) return 0;
-	const char c = g_szNMEALine[g_idxProcessNMEALine++];
-	if(g_idxProcessNMEALine==g_idxBufferNMEALine) {
-		NMEALine_reset();
-	}
-
-	return c;
-}
- 
- 
-static void NMEALine_addChar(const char c)
-{
-	if(g_idxBufferNMEALine<sizeof(g_szNMEALine)) {
-		g_szNMEALine[g_idxBufferNMEALine++]=c;
-	}
-}
-
-static uint8_t NMEALine_Tokenize(char * psz,char ** pNext)
-{
-	uint8_t i = 0;
-	char * const p = psz;
-	
-	do {
-		const char c = p[i];
-		if(c==',') {
-			p[i] = 0;
-			*pNext = p+(i+1);
-			return i;
-		} 
-		
-		if(c==0) {
-			*pNext = NULL;
-			return i;
-		}
-	} while(++i<NMEA_SENTENCE_MAX_LENGTH);
-	
-	*pNext = NULL;
-	return 0;
-}
-
-static uint8_t __attribute__((const)) ascii_hex(const uint8_t c)
-{
-	if((c>47) && (c<58)) { // 0 to 9  
-		return (c-48);
-	} else if((c>64) && (c<71)) { // A to F
-		return (c-55);
-	} else if((c>96) && (c<103)) { // a to f
-		return (c-87);
-	}
-	
-	//ERROR TO HANDLE
-	
-	return 0xFF;
-}
-
-
-static uint8_t NMEALine_checksum_check(char * const psz,const uint8_t len_sz)
-{
-	uint8_t ix = 0;
-	uint8_t r = 0;
-	if(len_sz<10) {
-		return 1;
-	}
-	if(psz[ix]=='$') ix++;
-	while (ix<len_sz)
-	{
-		const char c = psz[ix++];
-		if(c=='*') break;
-		r ^= c;
-	}
-	
-	uint8_t cs = (ascii_hex(psz[ix])<<4) | ascii_hex(psz[ix+1]);
-	if (r!=cs)
-	{
-		debug_string_2P(NORMAL,PSTR("L8095 NMEA CHECKSUM") ,PSTR("MISMATCH"));
-		return 0xFF;
-	} 
-	return 0;
-}
-
 #ifdef RMAP_SERVICES
-
-/*
-enum {		L8095N_STAT_BEG=0,
-			L8095N_STAT_PRESSURE=L8095N_STAT_BEG,
-			L8095N_STAT_TEMPERATURE,
-			L8095N_STAT_TEMPERATURE_MAX,
-			L8095N_STAT_TEMPERATURE_MIN,
-			L8095N_STAT_RH,
-			L8095N_STAT_DEWPOINT,
-			L8095N_STAT_END};
-*/
-
-//#include <math.h>
 
 RET_ERROR_CODE l8095n_Data2String_RMAP(	 uint8_t * const subModule
 										,const L8095N_DATA * const st
@@ -330,30 +228,19 @@ RET_ERROR_CODE l8095n_Data2String(const L8095N_DATA * const st,char * const sz, 
 	return AC_ERROR_OK;
 }
 
-
-void l8095n_enable( void )
-{
-	usart_rx_enable(L8095N_PUSART);
-}
-
-void l8095n_disable( void )
-{
-	usart_rx_disable(L8095N_PUSART);
-}
-
-#define SWITCH_PIN					IOPORT_CREATE_PIN(PORTD, 1)
+//#define SWITCH_PIN					IOPORT_CREATE_PIN(PORTD, 1)
 
 static void	l8095n_powercycle(void)
 {
 //	return;
-	gpio_toggle_pin(SWITCH_PIN);
-	delay_ms(3000);
-	gpio_toggle_pin(SWITCH_PIN);
-	delay_ms(3000);
+	//gpio_toggle_pin(SWITCH_PIN);
+	//delay_ms(3000);
+	//gpio_toggle_pin(SWITCH_PIN);
+	//delay_ms(3000);
 }
 
-
-RET_ERROR_CODE l8095n_init(void)
+/*
+static RET_ERROR_CODE l8095n_init(void)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"L8095N Init");
 	NMEALine_reset();
@@ -361,38 +248,38 @@ RET_ERROR_CODE l8095n_init(void)
 		
 	//usart_interruptdriver_initialize(&g_l8095n_usart_data,L8095N_PUSART,USART_INT_LVL_LO);
 
-	ioport_configure_pin(SWITCH_PIN, IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
+//	ioport_configure_pin(SWITCH_PIN, IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
 
 	l8095n_powercycle();
 	
 	//L8095N sensor
 	//ioport_configure_pin(L8095N_PIN_TX_ENABLE, IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
-	ioport_configure_pin(L8095N_PIN_TX_SIGNAL, IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
-	ioport_configure_pin(L8095N_PIN_RX_SIGNAL, IOPORT_DIR_INPUT);
-
-	
-	static usart_rs232_options_t usart_options = {
-		.baudrate = 4800,
-		.charlength = USART_CHSIZE_8BIT_gc,
-		.paritytype = USART_PMODE_DISABLED_gc,
-		.stopbits = false
-	};
-	
-	
-	
-	SP336_Config(L8095N_PUSART,&usart_options);
-	usart_tx_enable(L8095N_PUSART);
-	SP336_RegisterCallback(L8095N_PUSART,l8095n_rx);
-
-	usart_rx_disable(L8095N_PUSART);
-	usart_tx_disable(L8095N_PUSART);
+	//ioport_configure_pin(L8095N_PIN_TX_SIGNAL, IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
+	//ioport_configure_pin(L8095N_PIN_RX_SIGNAL, IOPORT_DIR_INPUT);
+//
+	//
+	//static usart_rs232_options_t usart_options = {
+		//.baudrate = 4800,
+		//.charlength = USART_CHSIZE_8BIT_gc,
+		//.paritytype = USART_PMODE_DISABLED_gc,
+		//.stopbits = false
+	//};
+	//
+	//
+	//
+	//SP336_Config(L8095N_PUSART,&usart_options);
+	//usart_tx_enable(L8095N_PUSART);
+	//SP336_RegisterCallback(L8095N_PUSART,l8095n_rx);
+//
+	//usart_rx_disable(L8095N_PUSART);
+	//usart_tx_disable(L8095N_PUSART);
 
 	return AC_ERROR_OK;
 }
+*/
 
 
-
-static void l8095n_process_NMEA_Statement(char * const psz)
+static void l8095n_process_NMEA_Statement(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	const uint8_t le = NMEA_LAST_ENTRY;
 
@@ -401,12 +288,12 @@ static void l8095n_process_NMEA_Statement(char * const psz)
 		if (0==strncasecmp_P(psz,p,6))
 		{
 			NMEA_FN_HANDLER fn = nvm_flash_read_word( (flash_addr_t) (tbl_NMEAfn+i) );
-			fn(psz);
+			fn(pSelf,psz);
 		}
 	}
 }
 
-
+/*
 bool l8095n_Yield( void )
 {
 	static char szBuf[128];
@@ -445,55 +332,55 @@ void l8095n_rx(const char c)
 	//usart_putchar(USART_DEBUG,c);
 	NMEALine_addChar(c);
 }
+*/
 
 
-
-static float l8095n_compute_stats(const uint8_t id)
+static float l8095n_compute_stats(L8095N_PRIVATE_DATA * const pSelf,const uint8_t id)
 {
-	if (g_samples[id]==0) { return -9999.0F; }
+	if (pSelf->g_samples[id]==0) { return -9999.0F; }
 	
 
 	const uint8_t op = nvm_flash_read_byte( (flash_addr_t) &g_stat_fmt[id].m_oper);
 	
 	if(op==L8095N_STAT_OPERATOR_MEAN) {
-		return g_data[id] / g_samples[id];
+		return pSelf->g_data[id] / pSelf->g_samples[id];
 	} 
 	
-	return g_data[id];
+	return pSelf->g_data[id];
 }
 
 
-RET_ERROR_CODE l8095n_get_data(L8095N_DATA * const ps)
+static RET_ERROR_CODE l8095n_get_data(L8095N_PRIVATE_DATA * const pSelf,L8095N_DATA * const ps)
 {
-	simple_signal_wait(&sig_data_busy);
+	simple_signal_wait(&(pSelf->sig_data_busy));
 		
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC(sig_data_busy);
+	SIGNAL_SET_AND_CLEAR_AUTOMATIC((pSelf->sig_data_busy));
 
 	for(uint8_t ix = L8095N_STAT_BEG;ix<L8095N_STAT_END;++ix)
 	{
-		ps->m_stat[ix] = l8095n_compute_stats(ix);
+		ps->m_stat[ix] = l8095n_compute_stats(pSelf,ix);
 	}
 
 	return AC_ERROR_OK;
 }
 
 
-RET_ERROR_CODE l8095n_reset_data(void)
+static RET_ERROR_CODE l8095n_reset_data(L8095N_PRIVATE_DATA * const pSelf)
 {
-	simple_signal_wait(&sig_data_busy);
+	simple_signal_wait(&(pSelf->sig_data_busy));
 	
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC(sig_data_busy);
+	SIGNAL_SET_AND_CLEAR_AUTOMATIC((pSelf->sig_data_busy));
 
 	for(uint8_t ix = L8095N_STAT_BEG;ix<L8095N_STAT_END;++ix)
 	{
-		g_samples[ix] = 0;
+		pSelf->g_samples[ix] = 0;
 	}
 
 
 	return AC_ERROR_OK;
 }
 
-static void L8095N_NMEA_UpdateStats(const uint8_t id,const char * const p)
+static void L8095N_NMEA_UpdateStats(L8095N_PRIVATE_DATA * const pSelf,const uint8_t id,const char * const p)
 {
 	const float val = atof(p);
 	uint8_t op;
@@ -502,63 +389,63 @@ static void L8095N_NMEA_UpdateStats(const uint8_t id,const char * const p)
 
 	//static float gust_temp = -9999.0F;
 	
-	simple_signal_wait(&sig_data_busy);
+	simple_signal_wait(&(pSelf->sig_data_busy));
 	
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC(sig_data_busy);
+	SIGNAL_SET_AND_CLEAR_AUTOMATIC((pSelf->sig_data_busy));
 	
 	if(op==L8095N_STAT_OPERATOR_MEAN) {
 		
-		if(g_samples[id]==0) {
-			g_data[id]=val;
+		if(pSelf->g_samples[id]==0) {
+			pSelf->g_data[id]=val;
 		} else {
-			g_data[id]+=val;
+			pSelf->g_data[id]+=val;
 		}
 		
 	} else if(op==L8095N_STAT_OPERATOR_MAX) {
 		
-		if(g_samples[id]==0) {
-			g_data[id]=val;
+		if(pSelf->g_samples[id]==0) {
+			pSelf->g_data[id]=val;
 		} else {
-			if(g_data[id]<val) {g_data[id]=val;}
+			if(pSelf->g_data[id]<val) {pSelf->g_data[id]=val;}
 		}
 		
 	} else if(op==L8095N_STAT_OPERATOR_MIN) {
 
-		if(g_samples[id]==0) {
-			g_data[id]=val;
+		if(pSelf->g_samples[id]==0) {
+			pSelf->g_data[id]=val;
 		} else {
-			if(g_data[id]>val) {g_data[id]=val;}  
+			if(pSelf->g_data[id]>val) {pSelf->g_data[id]=val;}  
 		}
 
 	}
 
-	g_samples[id]++;
+	pSelf->g_samples[id]++;
 
 }
 
-static void l8095n_process_Barometric_pressure(const char * const p)
+static void l8095n_process_Barometric_pressure(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
 {
-	L8095N_NMEA_UpdateStats(L8095N_STAT_PRESSURE,p);
+	L8095N_NMEA_UpdateStats(pSelf,L8095N_STAT_PRESSURE,p);
 }
 
-static void l8095n_process_temperature(const char * const p)
+static void l8095n_process_temperature(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
 {
-	L8095N_NMEA_UpdateStats(L8095N_STAT_TEMPERATURE,p);
-	L8095N_NMEA_UpdateStats(L8095N_STAT_TEMPERATURE_MAX,p);
-	L8095N_NMEA_UpdateStats(L8095N_STAT_TEMPERATURE_MIN,p);
+	L8095N_NMEA_UpdateStats(pSelf,L8095N_STAT_TEMPERATURE,p);
+	L8095N_NMEA_UpdateStats(pSelf,L8095N_STAT_TEMPERATURE_MAX,p);
+	L8095N_NMEA_UpdateStats(pSelf,L8095N_STAT_TEMPERATURE_MIN,p);
 }
 
-static void l8095n_process_RH(const char * const p)
+static void l8095n_process_RH(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
 {
-	L8095N_NMEA_UpdateStats(L8095N_STAT_RH,p);
+	L8095N_NMEA_UpdateStats(pSelf,L8095N_STAT_RH,p);
 }
 
-static void l8095n_process_DEWPoint(const char * const p)
+static void l8095n_process_DEWPoint(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
 {
-	L8095N_NMEA_UpdateStats(L8095N_STAT_DEWPOINT,p);
+	L8095N_NMEA_UpdateStats(pSelf,L8095N_STAT_DEWPOINT,p);
 }
 
-static void L8095N_NMEA_Handler_WIMTA(char * const psz)
+static void L8095N_NMEA_Handler_WIMTA(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 
 	char * p = psz+7;
@@ -566,13 +453,13 @@ static void L8095N_NMEA_Handler_WIMTA(char * const psz)
 	uint8_t v;
 	
 	v = NMEALine_Tokenize(p,&q); //Air Temperature
-	if(v!=0) {l8095n_process_temperature(p);}
+	if(v!=0) {l8095n_process_temperature(pSelf,p);}
 	
 	v = NMEALine_Tokenize(q,&p); //Air Temperature, name of dimension ( C = celsius degrees)
 
 }
 
-static void L8095N_NMEA_Handler_WIMMB(char * const psz)
+static void L8095N_NMEA_Handler_WIMMB(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 //	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_WIMWD");
 //	debug_string(NORMAL,psz,RAM_STRING);
@@ -585,27 +472,33 @@ static void L8095N_NMEA_Handler_WIMMB(char * const psz)
 	v = NMEALine_Tokenize(q,&p);	//Empty
 	
 	v = NMEALine_Tokenize(p,&q); //Barometric pressure, bars, to the nearest .1 bar hPA
-	if(v!=0) {l8095n_process_Barometric_pressure(p);}
+	if(v!=0) {l8095n_process_Barometric_pressure(pSelf,p);}
 	
 	v = NMEALine_Tokenize(q,&p); //Barometric pressure, name of dimension ( B = hPa)
 
 }
 
-static void L8095N_NMEA_Handler_WIMHU(char * const psz)
+static void L8095N_NMEA_Handler_WIMHU(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	char * p = psz+7;
 	char * q;
 	uint8_t v;
 	
 	v = NMEALine_Tokenize(p,&q); //Relative humidity
-	if(v!=0) {l8095n_process_RH(p);}
+	if(v!=0) {l8095n_process_RH(pSelf,p);}
 	
 	v = NMEALine_Tokenize(q,&p); //Empty
 		
 	v = NMEALine_Tokenize(p,&q); //Dew point
-	if(v!=0) {l8095n_process_DEWPoint(p);}
+	if(v!=0) {l8095n_process_DEWPoint(pSelf,p);}
 	
 	v = NMEALine_Tokenize(q,&p); //Dew point, name of dimension ( C = celsius degrees)
 
 	
 }
+
+#define MODULE_INTERFACE_PRIVATE_DATATYPE L8095N_PRIVATE_DATA
+
+#define MODINST_PARAM_ID MOD_ID_L8095N
+#include "Acronet/datalogger/modinst/module_interface_definition.h"
+#undef MODINST_PARAM_ID

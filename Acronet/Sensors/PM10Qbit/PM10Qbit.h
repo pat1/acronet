@@ -26,15 +26,32 @@ typedef struct {
 	uint16_t zeros;
 } PM10QBIT_DATA;
 
+#define MODULE_PUBLIC_DATATYPE PM10QBIT_DATA
 
-void PM10QBIT_init(void);
-void PM10QBIT_enable(void);
-void PM10QBIT_disable(void);
-void PM10QBIT_get_data (PM10QBIT_DATA * const);
-void PM10QBIT_reset_data(void);
-bool PM10QBIT_Yield(void);
+#define MODULE_INTERFACE_INIT PM10QBIT_init
+#define MODULE_INTERFACE_ENABLE PM10QBIT_enable
+#define MODULE_INTERFACE_DISABLE PM10QBIT_disable
+#define MODULE_INTERFACE_YIELD PM10QBIT_Yield
+#define MODULE_INTERFACE_RESET PM10QBIT_reset_data
+#define MODULE_INTERFACE_GETDATA PM10QBIT_get_data
+#define MODULE_INTERFACE_DATA2STRING PM10QBIT_Data2String
 
-RET_ERROR_CODE PM10QBIT_Data2String(const PM10QBIT_DATA * const st,char * const sz, int16_t * len_sz);
+#define MODINST_PARAM_ID MOD_ID_PM10QBIT
+#include "Acronet/datalogger/modinst/module_interface_declaration.h"
 
 
+#undef MODINST_PARAM_ID
+/*
+#undef MODULE_PUBLIC_DATATYPE
+
+#undef MODULE_INTERFACE_INIT
+#undef MODULE_INTERFACE_ENABLE
+#undef MODULE_INTERFACE_DISABLE
+#undef MODULE_INTERFACE_YIELD
+#undef MODULE_INTERFACE_RESET
+#undef MODULE_INTERFACE_GETDATA
+#undef MODULE_INTERFACE_DATA2STRING
+
+*/
 #endif /* PM10QBIT_H_ */
+

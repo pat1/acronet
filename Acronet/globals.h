@@ -147,10 +147,10 @@ void debug_function_in_name_print_P(const uint8_t level,const char fname[]);
 void debug_function_out_name_print_P(const char * const * const fname);
 
 
-#define SIGNAL_SET_AND_CLEAR_AUTOMATIC(s)	volatile uint8_t * const sig_##s __attribute__((__cleanup__(simple_signal_clear2))) = &s; \
+#define SIGNAL_SET_AND_CLEAR_AUTOMATIC(s)	volatile uint8_t * const sig_##__COUNTER__ __attribute__((__cleanup__(simple_signal_clear2))) = &s; \
 											simple_signal_set(&s);
 											
-#define SIGNAL_CLEAR_AUTOMATIC(s)			volatile uint8_t * const sig_##s __attribute__((__cleanup__(simple_signal_clear2))) = &s;
+#define SIGNAL_CLEAR_AUTOMATIC(s)			volatile uint8_t * const sig_##__COUNTER__ __attribute__((__cleanup__(simple_signal_clear2))) = &s;
 
 
 static inline void simple_signal_clear(volatile uint8_t * const pSignal)

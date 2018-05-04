@@ -15,12 +15,8 @@
 #ifndef LEGINO_H_
 #define LEGINO_H_
 
-#define SETUP_MBXXXX
-
-//#define MODBUS_CHAN_0	0
-//#define MODBUS_CHAN_1	0
-//#define MODBUS_CHAN_2	0
-//#define MODBUS_CHAN_3	0
+#define USES_SP336_CHAN_0
+#define MODULE_DECLARATION ((MOD_ID_MBXXXX,(SP336_CHAN_0)))
 
 #define SP336_MODE					SP336_MODE_HIGHZ
 #define SP336_2_MODE				SP336_2_MODE_HIGHZ

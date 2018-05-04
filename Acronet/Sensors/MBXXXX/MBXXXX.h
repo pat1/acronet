@@ -36,17 +36,33 @@ typedef struct {
 #endif	
 } MBXXXX_DATA;
 
+#define MODULE_PUBLIC_DATATYPE MBXXXX_DATA
 
-RET_ERROR_CODE MBXXXX_init(void);
-void MBXXXX_enable(void);
-void MBXXXX_disable(void);
-void MBXXXX_get_data(MBXXXX_DATA * const );
-void MBXXXX_reset_data(void);
-bool MBXXXX_Yield(void);
-
-RET_ERROR_CODE MBXXXX_Data2String(const MBXXXX_DATA * const st,char * const sz, uint16_t * len_sz);
+#define MODULE_INTERFACE_INIT MBXXXX_init
+#define MODULE_INTERFACE_ENABLE MBXXXX_enable
+#define MODULE_INTERFACE_DISABLE MBXXXX_disable
+#define MODULE_INTERFACE_YIELD MBXXXX_Yield
+#define MODULE_INTERFACE_RESET MBXXXX_reset_data
+#define MODULE_INTERFACE_GETDATA MBXXXX_get_data
+#define MODULE_INTERFACE_DATA2STRING MBXXXX_Data2String
 
 void MBXXXX_triggerReading(void);
 
+#define MODINST_PARAM_ID MOD_ID_MBXXXX
+#include "Acronet/datalogger/modinst/module_interface_declaration.h"
+
+#undef MODINST_PARAM_ID
+/*
+#undef MODULE_PUBLIC_DATATYPE
+
+#undef MODULE_INTERFACE_INIT
+#undef MODULE_INTERFACE_ENABLE
+#undef MODULE_INTERFACE_DISABLE
+#undef MODULE_INTERFACE_YIELD
+#undef MODULE_INTERFACE_RESET
+#undef MODULE_INTERFACE_GETDATA
+#undef MODULE_INTERFACE_DATA2STRING
+*/
 
 #endif /* LEVELGAUGE_H_ */
+

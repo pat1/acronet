@@ -16,9 +16,8 @@
 #ifndef RAVONE_H_
 #define RAVONE_H_
 
-
-#define SETUP_VP61
-
+#define USES_ADC_CHAN_0
+#define MODULE_DECLARATION ((MOD_ID_VP61,(ADC_CH0)))
 
 #define SP336_MODE					SP336_MODE_HIGHZ
 #define SP336_2_MODE				SP336_2_MODE_HIGHZ

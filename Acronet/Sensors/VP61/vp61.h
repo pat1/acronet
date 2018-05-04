@@ -13,10 +13,6 @@
 #ifndef VEGAPULS61_H_
 #define VEGAPULS61_H_
 
-//#ifndef
-//
-//#endif
-
 typedef struct
 {
 	int16_t			v;
@@ -25,26 +21,34 @@ typedef struct
 	uint8_t			samples;
 } VP61_DATA;
 
-RET_ERROR_CODE vp61_init(void);
-void vp61_enable(void);
-void vp61_disable(void);
-RET_ERROR_CODE vp61_get_data(VP61_DATA * const);
-RET_ERROR_CODE vp61_reset_data(void);
-RET_ERROR_CODE vp61_Data2String(const VP61_DATA * const st,char * const sz, uint16_t * len_sz);
+#define MODULE_PUBLIC_DATATYPE VP61_DATA
 
-void  vp61_periodic(void);
+#define MODULE_INTERFACE_INIT vp61_init
+#define MODULE_INTERFACE_ENABLE vp61_enable
+#define MODULE_INTERFACE_DISABLE vp61_disable
+#define MODULE_INTERFACE_RESET vp61_reset_data
+#define MODULE_INTERFACE_GETDATA vp61_get_data
+#define MODULE_INTERFACE_DATA2STRING vp61_Data2String
 
-//bool vp61_Yield(void);
-#ifdef RMAP_SERVICES
-RET_ERROR_CODE vp61_Data2String_RMAP( uint8_t * const subModule ,const VP61_DATA * const st ,const uint32_t timeStamp ,const uint16_t timeWindow ,char * const szTopic ,int16_t * const len_szTopic ,char * const szMessage ,int16_t * const len_szMessage );
-#endif
+#if defined(RMAP_SERVICES)
+#define MODULE_INTERFACE_DATA2STRING_RMAP vp61_Data2String_RMAP
+#endif //RMAP_SERVICES
 
-//#define VP61_VOLTMETER			ADCA
-//#define VP61_VOLTMETER_CH		ADC_CH0
-//#define VP61_VOLTMETER_PIN_POS	ADCCH_POS_PIN4
-//#define VP61_VOLTMETER_PIN_NEG	ADCCH_POS_PIN0
+#define MODINST_PARAM_ID MOD_ID_VP61
+#include "Acronet/datalogger/modinst/module_interface_declaration.h"
 
 
-//#define RECURRENT_TASK_TABLE (RECURRENT_TASK_TABLE {vp61_process_sample();})
+#undef MODINST_PARAM_ID
+/*
+#undef MODULE_PUBLIC_DATATYPE
 
+#undef MODULE_INTERFACE_INIT
+#undef MODULE_INTERFACE_ENABLE
+#undef MODULE_INTERFACE_DISABLE
+#undef MODULE_INTERFACE_YIELD
+#undef MODULE_INTERFACE_RESET
+#undef MODULE_INTERFACE_GETDATA
+#undef MODULE_INTERFACE_DATA2STRING
+*/
 #endif /* VEGAPULS61_H_ */
+
