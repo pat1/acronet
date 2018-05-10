@@ -1,0 +1,71 @@
+/*
+ * ACRONET Project
+ * http://www.acronet.cc
+ *
+ * Copyright ( C ) 2014 Acrotec srl
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms
+ * of the EUPL v.1.1 license.  See http://ec.europa.eu/idabc/eupl.html for details.
+ */ 
+
+#include "Acronet/channels/pulse/pulse.h"
+
+#define ISTANCE_NUM BOOST_PP_FRAME_ITERATION(2)
+
+#define MODULE_ISTANCE_CHAN BOOST_PP_SEQ_ELEM(ISTANCE_NUM,MODULE_ISTANCES)
+#define METHOD_NAME_ISTANCE_TRAIL BOOST_PP_CAT(_ist_,ISTANCE_NUM)
+
+#define MODULE_PRIVATE_DATA  BOOST_PP_CAT(MODULE_INTERFACE_PRIVATE_DATATYPE,BOOST_PP_CAT(_ist_,ISTANCE_NUM))
+
+static MODULE_INTERFACE_PRIVATE_DATATYPE MODULE_PRIVATE_DATA;
+
+
+#ifdef MODULE_INTERFACE_YIELD
+#define MODULE_METHOD_YIELD BOOST_PP_CAT(MODULE_INTERFACE_YIELD,METHOD_NAME_ISTANCE_TRAIL)
+bool  MODULE_METHOD_YIELD( void )
+{
+	while (!PULSE_IS_EMPTY(MODULE_ISTANCE_CHAN))
+	{
+		PULSE_CHAN_STATISTICS s;
+		PULSE_GET_TSTAMP(MODULE_ISTANCE_CHAN,(&s));
+		raingauge_tip(&MODULE_PRIVATE_DATA,&s);
+		return true;
+	}
+	return false;
+}
+#undef MODULE_METHOD_NAME
+#endif
+
+#ifdef MODULE_INTERFACE_INIT
+#define MODULE_METHOD_NAME BOOST_PP_CAT(MODULE_INTERFACE_INIT,METHOD_NAME_ISTANCE_TRAIL)
+RET_ERROR_CODE MODULE_METHOD_NAME(void)
+{
+	MODULE_PRIVATE_DATA.raingauge_stats.maxSlope = 0xFFFF;
+	MODULE_PRIVATE_DATA.raingauge_stats.tips	 = 0;
+	return AC_ERROR_OK;
+}
+#undef MODULE_METHOD_NAME
+#endif
+
+#ifdef  MODULE_INTERFACE_RESET
+#define MODULE_METHOD_NAME BOOST_PP_CAT(MODULE_INTERFACE_RESET,METHOD_NAME_ISTANCE_TRAIL)
+RET_ERROR_CODE MODULE_METHOD_NAME(void)
+{
+	MODULE_PRIVATE_DATA.raingauge_stats.maxSlope = 0xFFFF;
+	MODULE_PRIVATE_DATA.raingauge_stats.tips	 = 0;
+	return AC_ERROR_OK;
+}
+#undef MODULE_METHOD_NAME
+#endif
+
+#ifdef  MODULE_INTERFACE_GETDATA
+#define MODULE_METHOD_NAME BOOST_PP_CAT(MODULE_INTERFACE_GETDATA,METHOD_NAME_ISTANCE_TRAIL)
+RET_ERROR_CODE  MODULE_METHOD_NAME(MODULE_PUBLIC_DATATYPE * const pData)
+{
+	pData->tips = MODULE_PRIVATE_DATA.raingauge_stats.tips;
+	pData->maxSlope = MODULE_PRIVATE_DATA.raingauge_stats.maxSlope;
+	return AC_ERROR_OK;
+}
+#undef MODULE_METHOD_NAME
+#endif
