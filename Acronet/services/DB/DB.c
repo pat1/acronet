@@ -69,7 +69,7 @@ void DB_dump_all(void)
 	uint8_t buf[16];
 	AT24CXX_Init();
 
-	for(;it.plain<PARTITION_DB_END;it.plain+=16)
+	for(;it.plain<DB_EEPROM_PARTITION_END;it.plain+=16)
 	{
 		snprintf_P(szBuf,sizeof(szBuf),PSTR("\r\n%03d:%03d:%03d\t"),it.byte[PAGE_BYTE],it.byte[MSB_BYTE],it.byte[LSB_BYTE]);
 		debug_string(NORMAL,szBuf,RAM_STRING);
@@ -289,8 +289,8 @@ RET_ERROR_CODE DB_iterator_init_eeprom(void)
 
 static void reset_iterators(void)
 {
-	g_eeprom_iter[ITERATOR_DB_BEGIN].plain  = PARTITION_DB_BEGIN;
-	g_eeprom_iter[ITERATOR_DB_END].plain  = PARTITION_DB_BEGIN;
+	g_eeprom_iter[ITERATOR_DB_BEGIN].plain  = DB_EEPROM_PARTITION_BEGIN;
+	g_eeprom_iter[ITERATOR_DB_END].plain  = DB_EEPROM_PARTITION_BEGIN;
 
 	//g_eeprom_iter[ITERATOR_LOG_BEGIN].plain  = PARTITION_LOG_BEGIN;
 	//g_eeprom_iter[ITERATOR_LOG_END].plain  = PARTITION_LOG_BEGIN;
@@ -367,12 +367,12 @@ RET_ERROR_CODE DB_query_startup_code(char szCode[4])
 void DB_iterator_moveback(DB_ITERATOR * pIter,uint16_t range)
 {
 	const int32_t n = range*SIZE_OF_DB_RECORD;
-	const int32_t x = PARTITION_DB_BEGIN+n;
+	const int32_t x = DB_EEPROM_PARTITION_BEGIN+n;
 	const int32_t z = pIter->plain;
 
 	if(z<x) {
 		debug_string_2P(NORMAL,PSTR("dl_iterator_moveback") ,PSTR("iterator wraps datalogger"));
-		pIter->plain = PARTITION_DB_END - (x-z);
+		pIter->plain = DB_EEPROM_PARTITION_END - (x-z);
 	} else {
 		pIter->plain = z - n;
 	}
@@ -381,12 +381,12 @@ void DB_iterator_moveback(DB_ITERATOR * pIter,uint16_t range)
 void DB_iterator_moveforward(DB_ITERATOR * const pIter,uint16_t range)
 {
 	const int32_t n = range*SIZE_OF_DB_RECORD;
-	const int32_t x = PARTITION_DB_END-n;
+	const int32_t x = DB_EEPROM_PARTITION_END-n;
 	const int32_t z = pIter->plain;
 
 	if(z>x) {
 		debug_string_2P(NORMAL,PSTR("dl_iterator_moveforward") ,PSTR("iterator wraps datalogger"));
-		pIter->plain = PARTITION_DB_BEGIN + (z-x);
+		pIter->plain = DB_EEPROM_PARTITION_BEGIN + (z-x);
 	} else {
 		pIter->plain = z + n;
 	}
@@ -483,8 +483,8 @@ uint32_t DB_size(void)
 	}
 	else
 	{
-		return	  (PARTITION_DB_END - g_eeprom_iter[ITERATOR_DB_BEGIN].plain) 
-				+ (g_eeprom_iter[ITERATOR_DB_END].plain - PARTITION_DB_BEGIN);
+		return	  (DB_EEPROM_PARTITION_END - g_eeprom_iter[ITERATOR_DB_BEGIN].plain) 
+				+ (g_eeprom_iter[ITERATOR_DB_END].plain - DB_EEPROM_PARTITION_BEGIN);
 	}
 }
 
@@ -497,7 +497,7 @@ uint32_t DB_iterator_distance(const DB_ITERATOR * const itBeg,const DB_ITERATOR 
 	}
 	else
 	{
-		return (PARTITION_DB_END - itBeg->plain) + (itEnd->plain - PARTITION_DB_BEGIN);
+		return (DB_EEPROM_PARTITION_END - itBeg->plain) + (itEnd->plain - DB_EEPROM_PARTITION_BEGIN);
 	}
 }
 

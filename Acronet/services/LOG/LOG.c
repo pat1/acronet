@@ -43,8 +43,7 @@ static uint16_t my_iterator_distance(const AT24CXX_iterator itBeg,const AT24CXX_
 	
 	if(len<0)
 	{
-		//return  (uint16_t) (len + PARTITION_LOG_END - (PARTITION_LOG_BEGIN+5));
-		return  (uint16_t) (len + PARTITION_LOG_END - (PARTITION_LOG_BEGIN+1));
+		return  (uint16_t) (len + LOG_EEPROM_PARTITION_END - (LOG_EEPROM_PARTITION_BEGIN+1));
 	}
 	
 	return (uint16_t) len - 1;	
@@ -61,10 +60,10 @@ static void my_iterator_next_page(AT24CXX_iterator * const it)
 {
 	AT24CXX_iterator a = { .plain = it->plain + 256 };
 
-	if (a.plain > PARTITION_LOG_END)
+	if (a.plain > LOG_EEPROM_PARTITION_END)
 	{
 		//it->plain = PARTITION_LOG_BEGIN + 4;
-		it->plain = PARTITION_LOG_BEGIN;
+		it->plain = LOG_EEPROM_PARTITION_BEGIN;
 	} else {
 		it->plain = a.plain;
 	}
@@ -74,10 +73,9 @@ static void my_iterator_add_offset(AT24CXX_iterator * const it,uint16_t offset)
 {
 	AT24CXX_iterator t = { .plain = it->plain + offset};
 	
-	while (t.plain > PARTITION_LOG_END)
+	while (t.plain > LOG_EEPROM_PARTITION_END)
 	{
-		//t.plain -= PARTITION_LOG_END - (PARTITION_LOG_BEGIN+4);
-		t.plain -= PARTITION_LOG_END - (PARTITION_LOG_BEGIN);
+		t.plain -= LOG_EEPROM_PARTITION_END - (LOG_EEPROM_PARTITION_BEGIN);
 	}
 
 	*it = t;
@@ -87,10 +85,10 @@ static void my_iterator_inc(AT24CXX_iterator * const it)
 {
 	AT24CXX_iterator t = { .plain = it->plain + 1};
 	
-	if(t.plain >= PARTITION_LOG_END)
+	if(t.plain >= LOG_EEPROM_PARTITION_END)
 	{
 		//it->plain = (PARTITION_LOG_BEGIN+4);
-		it->plain = (PARTITION_LOG_BEGIN);
+		it->plain = (LOG_EEPROM_PARTITION_BEGIN);
 	} else {
 		it->plain = t.plain;
 	}
@@ -102,9 +100,9 @@ static void my_iterator_dec(AT24CXX_iterator * const it)
 	AT24CXX_iterator t = { .plain = it->plain - 1};
 	
 	//if(t.plain < (PARTITION_LOG_BEGIN+4))
-	if(t.plain < (PARTITION_LOG_BEGIN))
+	if(t.plain < (LOG_EEPROM_PARTITION_BEGIN))
 	{
-		it->plain = PARTITION_LOG_END-1;
+		it->plain = LOG_EEPROM_PARTITION_END-1;
 	} else {
 		it->plain = t.plain;
 	}
@@ -115,7 +113,7 @@ static void my_iterator_dec(AT24CXX_iterator * const it)
 RET_ERROR_CODE LOG_reset( void )
 {
 
-	const AT24CXX_iterator it = { .plain = PARTITION_LOG_BEGIN };
+	const AT24CXX_iterator it = { .plain = LOG_EEPROM_PARTITION_BEGIN };
 
 	uint8_t szCode[2] = {	LOG_TAG_BEG,
 							LOG_TAG_END
@@ -135,8 +133,8 @@ RET_ERROR_CODE LOG_reset( void )
 	}
 
 
-	g_log_iter_beg.plain = PARTITION_LOG_BEGIN  ;
-	g_log_iter_end.plain = PARTITION_LOG_BEGIN + 1 ;
+	g_log_iter_beg.plain = LOG_EEPROM_PARTITION_BEGIN  ;
+	g_log_iter_end.plain = LOG_EEPROM_PARTITION_BEGIN + 1 ;
 
 	return r;
 }
@@ -211,11 +209,11 @@ RET_ERROR_CODE LOG_reset( void )
 
 static RET_ERROR_CODE  find_TAG(const uint8_t ui8TAG,AT24CXX_iterator * itPos)
 {
-	AT24CXX_iterator it = { .plain = PARTITION_LOG_BEGIN };		
+	AT24CXX_iterator it = { .plain = LOG_EEPROM_PARTITION_BEGIN };		
 
 	uint8_t buf[4];
 		
-	while(it.plain < PARTITION_LOG_END)
+	while(it.plain < LOG_EEPROM_PARTITION_END)
 	{
 		const RET_ERROR_CODE r = AT24CXX_ReadBlock(	it.byte[PAGE_BYTE],
 													it.byte[MSB_BYTE],
@@ -255,7 +253,7 @@ RET_ERROR_CODE LOG_init( void )
 {
 	AT24CXX_Init();
 	
-	AT24CXX_iterator it = { .plain = PARTITION_LOG_BEGIN };
+	AT24CXX_iterator it = { .plain = LOG_EEPROM_PARTITION_BEGIN };
 	
 
 	////////////////////////////////////////////////////////////
@@ -289,7 +287,7 @@ RET_ERROR_CODE LOG_init( void )
 	AT24CXX_iterator_report(g_log_iter_beg);
 	AT24CXX_iterator_report(g_log_iter_end);
 	
-	if ((g_log_iter_beg.plain == PARTITION_LOG_END) || (g_log_iter_end.plain == PARTITION_LOG_END))
+	if ((g_log_iter_beg.plain == LOG_EEPROM_PARTITION_END) || (g_log_iter_end.plain == LOG_EEPROM_PARTITION_END))
 	{
 		debug_string_1P(NORMAL,PSTR("One or more LOG Iterators are missing\r\n"
 									"probably due to a forced reboot."
@@ -420,7 +418,7 @@ RET_ERROR_CODE LOG_flush(uint8_t * const pBuffer,uint16_t * pBufferSize)
 {
 	AT24CXX_Init();
 	
-	static const AT24CXX_iterator dummy = { .plain = PARTITION_LOG_BEGIN };		
+	static const AT24CXX_iterator dummy = { .plain = LOG_EEPROM_PARTITION_BEGIN };		
 	
 	AT24CXX_iterator it[2][2] = { { g_log_iter_beg, g_log_iter_end } ,
 								  { dummy , g_log_iter_end } };
@@ -428,7 +426,7 @@ RET_ERROR_CODE LOG_flush(uint8_t * const pBuffer,uint16_t * pBufferSize)
 									  
 	if(it[0][1].plain<g_log_iter_beg.plain)
 	{
-		it[0][1].plain = PARTITION_LOG_END;
+		it[0][1].plain = LOG_EEPROM_PARTITION_END;
 		idx = 2;
 	}
 	
@@ -509,8 +507,8 @@ RET_ERROR_CODE LOG_process_buffer(void)
 		freespace[0] = g_log_iter_beg.plain - g_log_iter_end.plain - 1;
 		freespace[1] = 0;
 	} else {
-		freespace[0] = PARTITION_LOG_END - g_log_iter_end.plain;
-		freespace[1] = g_log_iter_beg.plain - PARTITION_LOG_BEGIN ;
+		freespace[0] = LOG_EEPROM_PARTITION_END - g_log_iter_end.plain;
+		freespace[1] = g_log_iter_beg.plain - LOG_EEPROM_PARTITION_BEGIN ;
 	}
 	
 	const uint16_t d = log_buffer_index + 1; //In this way we take the END TAG 
@@ -525,7 +523,7 @@ RET_ERROR_CODE LOG_process_buffer(void)
 		}
 		if (freespace[1]>0)
 		{
-			const AT24CXX_iterator it = {.plain = PARTITION_LOG_BEGIN };				
+			const AT24CXX_iterator it = {.plain = LOG_EEPROM_PARTITION_BEGIN };				
 			const uint16_t v = min(d-freespace[0],freespace[1]);
 			uint8_t * const p = log_buffer + freespace[0];
 			LOG_process_buffer_2(it,p,v);

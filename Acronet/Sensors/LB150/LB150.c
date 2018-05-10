@@ -22,7 +22,7 @@
 #include <conf_board.h>
 #include <conf_usart_serial.h>
 #include "config/conf_usart_serial.h"
-#include "Acronet/services/NMEA/nmea.h"
+#include "Acronet/channels/NMEA/nmea.h"
 #include "Acronet/drivers/SP336/SP336.h"
 #include "Acronet/Sensors/LB150/LB150.h"
 #include "Acronet/services/config/config.h"
@@ -114,7 +114,7 @@ typedef struct
 	uint8_t g_samples[LB150_STAT_END];
 
 	
-} L8095N_PRIVATE_DATA;
+} LB150_PRIVATE_DATA;
 
 
 typedef struct {
@@ -195,24 +195,24 @@ enum {	NMEA_FIRST_ENTRY = 0,
 
 #define NUM_OF_NMEA_in (sizeof(tbl_NMEAin)/sizeof(char *))
 
-static void LB150_NMEA_Handler_GPDTM(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_GPGGA(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_GPGLL(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_GPGSA(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_GPGSV(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_HCHDG(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_HCHDT(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_WIMDA(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_WIMWD(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_WIMWV(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_GPRMC(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_GPVTG(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_WIVWR(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_WIVWT(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_YXXDR(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
-static void LB150_NMEA_Handler_GPZDA(L8095N_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPDTM(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPGGA(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPGLL(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPGSA(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPGSV(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_HCHDG(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_HCHDT(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_WIMDA(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_WIMWD(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_WIMWV(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPRMC(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPVTG(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_WIVWR(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_WIVWT(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_YXXDR(LB150_PRIVATE_DATA * const pSelf,char * const psz);
+static void LB150_NMEA_Handler_GPZDA(LB150_PRIVATE_DATA * const pSelf,char * const psz);
 
-typedef void (*NMEA_FN_HANDLER)(char * const);
+typedef void (*NMEA_FN_HANDLER)(LB150_PRIVATE_DATA * const ,char * const);
 
 static const NMEA_FN_HANDLER tbl_NMEAfn[] PROGMEM = {
 												LB150_NMEA_Handler_GPDTM,
@@ -278,7 +278,7 @@ static void	LB150_powercycle(void)
 
 
 
-static void LB150_process_NMEA_Statement(char * const psz)
+static void LB150_process_NMEA_Statement(LB150_PRIVATE_DATA * const pSelf, char * const psz)
 {
 	const uint8_t le = NMEA_LAST_ENTRY;
 
@@ -287,7 +287,7 @@ static void LB150_process_NMEA_Statement(char * const psz)
 		if (0==strncasecmp_P(psz,p,6))
 		{
 			NMEA_FN_HANDLER fn = nvm_flash_read_word( (flash_addr_t) (tbl_NMEAfn+i) );
-			fn(psz);
+			fn(pSelf,psz);
 		}
 	}
 }
@@ -327,40 +327,40 @@ bool LB150_Yield( void )
 }
 */
 
-static void LB150_NMEA_Handler_GPDTM(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_GPDTM(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPDTM (empty)");
 }
 
-static void LB150_NMEA_Handler_GPGGA(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_GPGGA(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPGGA (empty)");
 }
 
 
 
-static void LB150_NMEA_Handler_GPGSA(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_GPGSA(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPGSA (empty)");
 }
 
-static void LB150_NMEA_Handler_GPGSV(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_GPGSV(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPGSV (empty)");
 }
 
-static void LB150_NMEA_Handler_HCHDG(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_HCHDG(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_HCHDG (empty)");
 }
 
-static void LB150_NMEA_Handler_HCHDT(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_HCHDT(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_HCHDT (empty)");
 }
 
 
-static float LB150_compute_stats(L8095N_PRIVATE_DATA * const pSelf,const uint8_t id)
+static float LB150_compute_stats(LB150_PRIVATE_DATA * const pSelf,const uint8_t id)
 {
 	if (pSelf->g_samples[id]==0) { return -9999.0F; }
 	
@@ -375,7 +375,7 @@ static float LB150_compute_stats(L8095N_PRIVATE_DATA * const pSelf,const uint8_t
 }
 
 
-static RET_ERROR_CODE LB150_get_data(L8095N_PRIVATE_DATA * const pSelf,LB150_DATA * const ps)
+static RET_ERROR_CODE LB150_get_data(LB150_PRIVATE_DATA * const pSelf,LB150_DATA * const ps)
 {
 	for(uint8_t ix = LB150_STAT_BEG;ix<LB150_STAT_END;++ix)
 	{
@@ -386,7 +386,7 @@ static RET_ERROR_CODE LB150_get_data(L8095N_PRIVATE_DATA * const pSelf,LB150_DAT
 }
 
 
-static RET_ERROR_CODE LB150_reset_data(L8095N_PRIVATE_DATA * const pSelf)
+static RET_ERROR_CODE LB150_reset_data(LB150_PRIVATE_DATA * const pSelf)
 {
 
 	for(uint8_t ix = LB150_STAT_BEG;ix<LB150_STAT_END;++ix)
@@ -398,7 +398,7 @@ static RET_ERROR_CODE LB150_reset_data(L8095N_PRIVATE_DATA * const pSelf)
 	return AC_ERROR_OK;
 }
 
-static void LB150_NMEA_UpdateStats(L8095N_PRIVATE_DATA * const pSelf,const uint8_t id,const char * const p)
+static void LB150_NMEA_UpdateStats(LB150_PRIVATE_DATA * const pSelf,const uint8_t id,const char * const p)
 {
 	const float val = atof(p);
 	uint8_t op;
@@ -457,42 +457,42 @@ static void LB150_NMEA_UpdateStats(L8095N_PRIVATE_DATA * const pSelf,const uint8
 
 }
 
-static void LB150_process_Barometric_pressure(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
+static void LB150_process_Barometric_pressure(LB150_PRIVATE_DATA * const pSelf,const char * const p)
 {
 	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_PRESSURE,p);
 }
 
-static void LB150_process_temperature(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
+static void LB150_process_temperature(LB150_PRIVATE_DATA * const pSelf,const char * const p)
 {
 	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_TEMPERATURE,p);
 	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_TEMPERATURE_MAX,p);
 	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_TEMPERATURE_MIN,p);
 }
 
-static void LB150_process_RH(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
+static void LB150_process_RH(LB150_PRIVATE_DATA * const pSelf,const char * const p)
 {
 	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_RH,p);
 }
 
-static void LB150_process_DEWPoint(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
+static void LB150_process_DEWPoint(LB150_PRIVATE_DATA * const pSelf,const char * const p)
 {
 	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_DEWPOINT,p);
 }
 
-static void LB150_process_WinDir(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
+static void LB150_process_WinDir(LB150_PRIVATE_DATA * const pSelf,const char * const p)
 {
 	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_WINDIR,p);
 	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_WINDIR_GUST,p);
 	
 }
 
-static void LB150_process_WindSpeed(L8095N_PRIVATE_DATA * const pSelf,const char * const p)
+static void LB150_process_WindSpeed(LB150_PRIVATE_DATA * const pSelf,const char * const p)
 {
 	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_WINSPEED,p);
 	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_WINSPEED_GUST,p);
 }
 
-static void LB150_NMEA_Handler_WIMDA(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_WIMDA(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 //	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_WIMDA");
 
@@ -542,7 +542,7 @@ static void LB150_NMEA_Handler_WIMDA(L8095N_PRIVATE_DATA * const pSelf,char * co
 		
 }
 
-static void LB150_NMEA_Handler_WIMWD(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_WIMWD(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 //	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_WIMWD");
 //	debug_string(NORMAL,psz,RAM_STRING);
@@ -567,55 +567,55 @@ static void LB150_NMEA_Handler_WIMWD(L8095N_PRIVATE_DATA * const pSelf,char * co
 
 }
 
-static void LB150_NMEA_Handler_WIMWV(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_WIMWV(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_WIMWV (empty)");
 }
 
-static void LB150_NMEA_Handler_GPRMC(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_GPRMC(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPRMC (empty)");
 }
 
-static void LB150_NMEA_Handler_GPVTG(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_GPVTG(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPVTG (empty)");
 }
 
-static void LB150_NMEA_Handler_WIVWR(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_WIVWR(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_WIVWR (empty)");
 }
 
-static void LB150_NMEA_Handler_WIVWT(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_WIVWT(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_WIVWT (empty)");
 }
 
-static void LB150_NMEA_Handler_YXXDR(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_YXXDR(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_YXXDR (empty)");
 }
 
-static void LB150_NMEA_Handler_GPZDA(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_GPZDA(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"NMEA_Handler_GPZDA (empty)");
 }
 
 #ifdef LB150_ENABLE_GPS
-static void LB150_process_GPS_Lat( L8095N_PRIVATE_DATA * const pSelf,char * const p )
+static void LB150_process_GPS_Lat( LB150_PRIVATE_DATA * const pSelf,char * const p )
 {
 	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_LATITUDE,p);
 }
 
-static void LB150_process_GPS_Lon( L8095N_PRIVATE_DATA * const pSelf,char * const p )
+static void LB150_process_GPS_Lon( LB150_PRIVATE_DATA * const pSelf,char * const p )
 {
 	LB150_NMEA_UpdateStats(pSelf,LB150_STAT_LONGITUDE,p);
 }
 #endif
 
 
-static void LB150_NMEA_Handler_GPGLL(L8095N_PRIVATE_DATA * const pSelf,char * const psz)
+static void LB150_NMEA_Handler_GPGLL(LB150_PRIVATE_DATA * const pSelf,char * const psz)
 {
 #ifdef LB150_ENABLE_GPS
 	
@@ -643,3 +643,10 @@ static void LB150_NMEA_Handler_GPGLL(L8095N_PRIVATE_DATA * const pSelf,char * co
 	
 #endif //LB150_ENABLE_GPS
 }
+
+#define MODULE_INTERFACE_PRIVATE_DATATYPE LB150_PRIVATE_DATA
+
+
+#define MODINST_PARAM_ID MOD_ID_LB150
+#include "Acronet/datalogger/modinst/module_interface_definition.h"
+#undef MODINST_PARAM_ID

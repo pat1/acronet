@@ -11,6 +11,9 @@
 
 
 
+#include "Acronet/setup.h"
+#include "Acronet/HAL/hal_interface.h"
+
 #include "asf.h"
 #include <stdio.h>
 #include "calendar.h"
@@ -20,25 +23,25 @@
 
 #include "Acronet/globals.h"
 #include "Acronet/datalogger/datalogger.h"
-
-#include "Acronet/drivers/StatusLED/status_led.h"
+//
+//#include "Acronet/drivers/StatusLED/status_led.h"
 #include "Acronet/drivers/PowerSwitch/powerswitch.h"
-#include "Acronet/drivers/SIM/sim900.h"
-
-#include "Acronet/services/taskman/taskman.h"
-#include "Acronet/services/config/config.h"
-
-#include "Acronet/drivers/SP336/SP336.h"
-
-#include "Acronet/Sensors/raingauge/pulse_raingauge.h"
-#include "Acronet/Sensors/LB150/LB150.h"
-#include "Acronet/Sensors/MBXXXX/MBXXXX.h"
-
-#include "Acronet/services/CAP/cap_common.h"
-
-
-#include "Acronet/setup.h"
-#include "Acronet/services/DB/DB.h"
+//#include "Acronet/drivers/SIM/sim900.h"
+//
+//#include "Acronet/services/taskman/taskman.h"
+//#include "Acronet/services/config/config.h"
+//
+//#include "Acronet/drivers/SP336/SP336.h"
+//
+//#include "Acronet/Sensors/raingauge/pulse_raingauge.h"
+//#include "Acronet/Sensors/LB150/LB150.h"
+//#include "Acronet/Sensors/MBXXXX/MBXXXX.h"
+//
+//#include "Acronet/services/CAP/cap_common.h"
+//
+//
+//#include "Acronet/setup.h"
+//#include "Acronet/services/DB/DB.h"
 
 
 static void	simple_logger_test(void);

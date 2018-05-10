@@ -107,7 +107,7 @@ static uint8_t ReadCalibrationBytes( uint8_t index )
 }
 
 
-RET_ERROR_CODE vp61_init(void)
+static RET_ERROR_CODE vp61_init(void)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"VP61 Init");
 	ADCB.CALL = ReadCalibrationBytes( ADCBCAL0 );
@@ -115,17 +115,17 @@ RET_ERROR_CODE vp61_init(void)
 	return AC_ERROR_OK;
 }
 
-void vp61_enable(void)
+static void vp61_enable(void)
 {
 	/* ToDo */
 }
 
-void vp61_disable(void)
+static void vp61_disable(void)
 {
 	/* ToDo */
 }
 
-RET_ERROR_CODE vp61_get_data(VP61_DATA * const ps)
+static RET_ERROR_CODE vp61_get_data(VP61_DATA * const ps)
 {
 	
 	const float v1 = (float)g_Data[VP61_MEASUREBUFMID];
@@ -142,7 +142,7 @@ RET_ERROR_CODE vp61_get_data(VP61_DATA * const ps)
 	return AC_ERROR_OK;
 }
 
-void vp61_periodic(void )
+static void vp61_periodic(void )
 {
 	struct adc_config adc_conf;
 	struct adc_channel_config adcch_conf;
@@ -190,13 +190,13 @@ void vp61_periodic(void )
 	
 }
 
-RET_ERROR_CODE vp61_reset_data(void)
+static RET_ERROR_CODE vp61_reset_data(void)
 {
 	g_samples = 0;
 	return AC_ERROR_OK;
 }
 
-RET_ERROR_CODE vp61_Data2String(const VP61_DATA * const st,char * const sz, uint16_t * const len_sz)
+static RET_ERROR_CODE vp61_Data2String(const VP61_DATA * const st,char * const sz, uint16_t * const len_sz)
 {
 	const uint16_t samples = st->samples;
 	

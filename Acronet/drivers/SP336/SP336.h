@@ -42,6 +42,10 @@ RET_ERROR_CODE SP336_RegisterCallback (USART_t * const id,SP336_CALLBACK fn);
 RET_ERROR_CODE SP336_PutChar (USART_t * const  id, const char c);
 //RET_ERROR_CODE SP336_PutString (USART_t * const id, const char * const sz);
 
+RET_ERROR_CODE SP336_0_PutString(const char * const ps,const uint16_t len);
+RET_ERROR_CODE SP336_1_PutString(const char * const ps,const uint16_t len);
+RET_ERROR_CODE SP336_2_PutString(const char * const ps,const uint16_t len);
+RET_ERROR_CODE SP336_3_PutString(const char * const ps,const uint16_t len);
 
 
 RET_ERROR_CODE SP336_0_PutBuffer(const uint8_t * const pBuf,const uint16_t len);

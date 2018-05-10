@@ -19,207 +19,26 @@
 #include "Acronet/drivers/StatusLED/status_led.h"
 //#include "services/module_registry/module_registry.h"
 #include "Acronet/services/config/config.h"
-
-#define RAINGAUGE1 0
-#define RAINGAUGE2 1
-
-//#define MAXSLOPE_DATATYPE uint16_t
-//#define MAXSLOPE_UNDEF_VALUE ((MAXSLOPE_DATATYPE)(-1))
-//#define CENTS_UNDEF_VALUE MAXSLOPE_UNDEF_VALUE
+#include "Acronet/channels/pulse/pulse.h"
 
 typedef struct
 {
 	RAINGAUGE_DATA raingauge_stats;
-	uint32_t lastTipEpoch[2];
-	uint32_t lastTipMillis[2];
-	uint8_t sig_data = 0;
-	uint8_t tick;
+	uint32_t lastTipEpoch;
+	uint32_t lastTipMillis;
 } RAINGAUGE_PRIVATE_DATA;
 
 
-typedef struct {
-	uint32_t lastTipEpoch[2];
-    uint32_t lastTipMillis[2];
-} INTERNAL_STATISTICS;
 
-
-#ifdef SETUP_RAINGAUGE_AUX
-static volatile RAINGAUGE_DATA raingauge_stats[2];
-static volatile INTERNAL_STATISTICS ins[2];
-static volatile uint8_t sig_data1 = 0;
-static volatile uint8_t sig_data2 = 0;
-static uint8_t tick[2] ;
-#else
-static volatile RAINGAUGE_DATA raingauge_stats[1];
-static volatile INTERNAL_STATISTICS ins[1];
-static volatile uint8_t sig_data1 = 0;
-static uint8_t tick[1] ;
-#endif
-
-
-typedef struct {
-	uint8_t swapped;
-} RAINGAUGE_SETUP;
-
-
-static void raingauge_tip(const uint8_t id)
+static void raingauge_tip(RAINGAUGE_PRIVATE_DATA * const pSelf,const PULSE_CHAN_STATISTICS * const pStat )
 {
-	volatile RAINGAUGE_DATA * const ps = &raingauge_stats[id];
-	
-
-	const uint32_t millis = hal_rtc_get_millis();
-	const uint32_t epoch = hal_rtc_get_time();
-	
-	uint32_t s = 0xFFFF;
-	
-	uint8_t t = tick[id];
-	uint32_t lastTipEpoch = ins[id].lastTipEpoch[t];
-
-	if(lastTipEpoch==0) {
-		t = 1-t;
-		lastTipEpoch = ins[id].lastTipEpoch[t];
+	pSelf->raingauge_stats.tips += pStat->numOfPulses;
+	pSelf->lastTipMillis = pStat->lastPulseMillis;
+	pSelf->lastTipEpoch = pStat->lastPulseEpoch;
+	const uint32_t s = pStat->minDT;
+	if( (0 == (s & 0xFFFF0000)) && ( s < pSelf->raingauge_stats.maxSlope )) {
+		pSelf->raingauge_stats.maxSlope = s;
 	}
-	
-	
-	if(lastTipEpoch!=0) {
-		
-		const uint32_t d = (epoch - lastTipEpoch);
-		const uint32_t m = ins[id].lastTipMillis[t];
-
-		s = (1000*d) + millis - m; 
-		
-		if (s<200) //Time between two tips is too low
-		{
-			return;
-		}
-		
-		if(s< ps->maxSlope) {
-			ps->maxSlope = s;
-		}
-
-	}
-
-
-	ins[id].lastTipEpoch[tick[id]] = epoch;
-	ins[id].lastTipMillis[tick[id]] = millis;
-	ps->tips++;
-
-	//if (RAINGAUGE1==id)
-	//{
-			//usart_putchar(USART_DEBUG,'A');
-	//} 
-	//else
-	//{
-			//usart_putchar(USART_DEBUG,'B');
-	//}
-	//
-	//status_led_toggle();	
-}
-
-static void internal_reset_data(const uint8_t id)
-{
-	raingauge_stats[id].maxSlope = 0xFFFF;
-	raingauge_stats[id].tips	 = 0;
-	
-	const uint8_t t = 1 - tick[id];
-	
-	ins[id].lastTipEpoch[t] = 0;
-	ins[id].lastTipMillis[t] = 0;
-	
-	tick[id] = t;
-}
-
-void raingauge_reset_data(void)
-{
-	simple_signal_wait(&sig_data1);
-	
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC(sig_data1);
-	
-	internal_reset_data(RAINGAUGE1);
-}
-
-
-void raingauge_get_data(RAINGAUGE_DATA * const ps)
-{
-	simple_signal_wait(&sig_data1);
-	
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC(sig_data1);
-
-	volatile RAINGAUGE_DATA * const s = &raingauge_stats[RAINGAUGE1];
-
-	//memcpy_ram2ram(ps,s,sizeof(RAINGAUGE_DATA));
-	ps->tips = s->tips;
-	ps->maxSlope = s->maxSlope;
-}
-
-#ifdef SETUP_RAINGAUGE_AUX
-
-void raingauge_get_data_aux(RAINGAUGE_DATA * const ps)
-{
-	simple_signal_wait(&sig_data2);
-	
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC(sig_data2);
-
-	RAINGAUGE_DATA * const s = &raingauge_stats[RAINGAUGE2];
-
-//	memcpy_ram2ram(ps,s,sizeof(RAINGAUGE_DATA));
-	ps->tips = s->tips;
-	ps->maxSlope = s->maxSlope;
-
-}
-
-void raingauge_reset_data_aux(void)
-{
-	simple_signal_wait(&sig_data2);
-		
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC(sig_data2);
-
-	internal_reset_data(RAINGAUGE2);
-}
-
-
-
-#endif
-
-static void init_stats(uint8_t id)
-{
-	const static __flash RAINGAUGE_DATA zd = { .maxSlope = 0xFFFF , .tips = 0 };
-	raingauge_stats[id] = zd;
-	
-	tick[id] = 0;
-	const static __flash INTERNAL_STATISTICS zs = { {0,0} , {0,0} };
-	ins[id] = zs;
-}
-
-RET_ERROR_CODE raingauge_init(void) 
-{
-	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"RAINGAUGE INIT");
-	RAINGAUGE_SETUP s;
-	CFG_ITEM_ADDRESS f = 0;
-	if( AC_ERROR_OK != cfg_find_item(CFG_TAG_RAINGAUGE_PORT,&f))
-	{
-		debug_string_1P(NORMAL,PSTR("[ERROR] Missing configuration file\r\n"));
-		return AC_ERROR_GENERIC;
-	}
-
-	cfg_get_item_file(f,&s,sizeof(RAINGAUGE_SETUP));
-
-
-	PORT_ConfigureInterrupt0( &PORTR, PORT_INT0LVL_LO_gc, (s.swapped==0) ? 0x02 : 0x01 ); 
-//	raingauge_reset_data();
-	init_stats(RAINGAUGE1);
-
-
-
-#ifdef SETUP_RAINGAUGE_AUX
-	PORT_ConfigureInterrupt1( &PORTR, PORT_INT1LVL_LO_gc, (s.swapped==0) ? 0x01 : 0x02 );
-	//raingauge_reset_data_aux();
-	init_stats(RAINGAUGE2);
-#endif	
-
-	sleepmgr_lock_mode(SLEEPMGR_IDLE);
-
-	return AC_ERROR_OK;
 }
 
 #ifdef RMAP_SERVICES
@@ -299,47 +118,25 @@ RET_ERROR_CODE raingauge_Data2String_RMAP_aux(	uint8_t * const subModule
 
 #endif
 
-static RET_ERROR_CODE internal_Data2String(const uint8_t id,const RAINGAUGE_DATA * const st,char * const sz, int16_t * len_sz)
+static RET_ERROR_CODE internal_Data2String(const RAINGAUGE_DATA * const st,char * const sz, uint16_t * len_sz)
 {
-	static const char __flash fmt[][18] = {"&P=%u&S=%u","&PAUX=%u&SAUX=%u"};
-	int16_t len = snprintf_P(sz,*len_sz,fmt[(id==0)?0:1],st->tips,st->maxSlope);
+	static const char __flash fmt[18] = "&P=%u&S=%u";
+	int16_t len = snprintf_P(sz,*len_sz,fmt,st->tips,st->maxSlope);
 
 	const RET_ERROR_CODE e = (len < *len_sz) ? AC_ERROR_OK : AC_BUFFER_OVERFLOW;
 	*len_sz = len;
 	return e;
 }
 
-RET_ERROR_CODE raingauge_Data2String_aux(const RAINGAUGE_DATA * const st,char * const sz, int16_t * len_sz)
+
+RET_ERROR_CODE raingauge_Data2String(const RAINGAUGE_DATA * const st,char * const sz, uint16_t * len_sz)
 {
-	return internal_Data2String(1,st,sz, len_sz);
+	return internal_Data2String(st,sz, len_sz);
 }
 
-RET_ERROR_CODE raingauge_Data2String(const RAINGAUGE_DATA * const st,char * const sz, int16_t * len_sz)
-{
-	return internal_Data2String(0,st,sz, len_sz);
-}
+#define MODULE_INTERFACE_PRIVATE_DATATYPE RAINGAUGE_PRIVATE_DATA
 
-#ifdef SETUP_RAINGAUGE
 
-ISR(PORTR_INT0_vect)
-{
-	simple_signal_wait(&sig_data1);
-	
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC(sig_data1);
-	
-	raingauge_tip(RAINGAUGE1);
-}
-
-#ifdef SETUP_RAINGAUGE_AUX
-
-ISR(PORTR_INT1_vect)
-{
-	simple_signal_wait(&sig_data2);
-		
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC(sig_data2);
-
-	raingauge_tip(RAINGAUGE2);
-}
-
-#endif
-#endif
+#define MODINST_PARAM_ID MOD_ID_RAINGAUGE
+#include "Acronet/datalogger/modinst/module_interface_definition.h"
+#undef MODINST_PARAM_ID

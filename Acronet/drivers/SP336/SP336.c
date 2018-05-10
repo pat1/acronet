@@ -236,9 +236,9 @@ static RET_ERROR_CODE SP336_0_PutString2(const char * const psz,const uint16_t l
 	return AC_BUFFER_OVERFLOW;
 }
 
-RET_ERROR_CODE SP336_0_PutString(const char * const psz,const uint16_t len)
+RET_ERROR_CODE SP336_0_PutString(const char * const ps,const uint16_t len)
 {
-	const RET_ERROR_CODE e = SP336_0_PutString2(psz,len);
+	const RET_ERROR_CODE e = SP336_0_PutString2(ps,len);
 
 #if (SP336_MODE==SP336_MODE_RS485_HALFDUP)
 	internal_HalfDuplex_0_OUT();
@@ -289,9 +289,9 @@ static RET_ERROR_CODE SP336_1_PutString2(const char * const psz,const uint16_t l
 	return AC_BUFFER_OVERFLOW;
 }
 
-RET_ERROR_CODE SP336_1_PutString(const char * const psz,const uint16_t len)
+RET_ERROR_CODE SP336_1_PutString(const char * const ps,const uint16_t len)
 {
-	const RET_ERROR_CODE e = SP336_1_PutString2(psz,len);
+	const RET_ERROR_CODE e = SP336_1_PutString2(ps,len);
 
 	#if (SP336_MODE==SP336_MODE_RS485_HALFDUP)
 	internal_HalfDuplex_1_OUT();
@@ -344,9 +344,9 @@ static RET_ERROR_CODE SP336_2_PutString2(const char * const psz,const uint16_t l
 	return AC_BUFFER_OVERFLOW;
 }
 
-RET_ERROR_CODE SP336_2_PutString(const char * const psz,const uint16_t len)
+RET_ERROR_CODE SP336_2_PutString(const char * const ps,const uint16_t len)
 {
-	const RET_ERROR_CODE e = SP336_2_PutString2(psz,len);
+	const RET_ERROR_CODE e = SP336_2_PutString2(ps,len);
 
 #if (SP336_MODE==SP336_MODE_RS485_HALFDUP)
 	internal_HalfDuplex_2_OUT();
@@ -402,9 +402,9 @@ static RET_ERROR_CODE SP336_3_PutString2(const char * const psz,const uint16_t l
 	return AC_BUFFER_OVERFLOW;
 }
 
-RET_ERROR_CODE SP336_3_PutString(const char * const psz,const uint16_t len)
+RET_ERROR_CODE SP336_3_PutString(const char * const ps,const uint16_t len)
 {
-	const RET_ERROR_CODE e = SP336_3_PutString2(psz,len);
+	const RET_ERROR_CODE e = SP336_3_PutString2(ps,len);
 
 #if (SP336_MODE==SP336_MODE_RS485_HALFDUP)
 	internal_HalfDuplex_3_OUT();

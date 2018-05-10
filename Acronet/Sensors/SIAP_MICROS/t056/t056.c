@@ -18,9 +18,24 @@
 #include "Acronet/globals.h"
 #include "t056.h"
 #include "Acronet/drivers/SP336/SP336.h"
-#include "Acronet/services/MODBUS_RTU/mb_crc.h"
-#include "Acronet/services/MODBUS_RTU/master_rtu.h"
+#include "Acronet/channels/MODBUS_RTU/mb_crc.h"
+#include "Acronet/channels/MODBUS_RTU/master_rtu.h"
 
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+// T056 module
+// - modbus connected device
+// each instance of this module requires its own command to be spawned through
+// the periodic function; this command is defined in the T056_PER_ISTANCE_CMD
+// that is a BOOST::preprocessor sequence of tuples
+// each tuple is the command, the sequence must contain as many tuples as many
+// instances of the module
+//
+
+#ifndef T056_PER_ISTANCE_CMD
+#error "T056 module requires the definition of the T056_PER_ISTANCE_CMD variable"
+#endif
 
 
 //#define T056_MEASURES_NUMBER	32
@@ -37,10 +52,10 @@ typedef struct
 {
 	MBUS_PDU pdu;
 
-	T056_SAMPLE g_Data[T056_DATABUFSIZE];
-	uint8_t g_samples;
+	T056_SAMPLE sample[T056_DATABUFSIZE];
+	uint8_t numSamples;
 
-	volatile uint8_t g_DataIsBusy;
+//	volatile uint8_t g_DataIsBusy;
 } T056_PRIVATE_DATA;
 
 
@@ -49,9 +64,9 @@ static uint8_t medianInsert_right(T056_PRIVATE_DATA * const pSelf,T056_SAMPLE va
 	T056_SAMPLE v0 = val;
 	for(uint8_t idx=pos;idx<T056_DATABUFSIZE;++idx)
 	{
-		const T056_SAMPLE a = pSelf->g_Data[idx];
+		const T056_SAMPLE a = pSelf->sample[idx];
 		const T056_SAMPLE v1 = (a.levl==0)?v0:a;
-		pSelf->g_Data[idx] = v0;
+		pSelf->sample[idx] = v0;
 		v0 = v1;
 	}
 	return 0;
@@ -63,9 +78,9 @@ static uint8_t medianInsert_left(T056_PRIVATE_DATA * const pSelf,T056_SAMPLE val
 	uint8_t idx=pos;
 	do 
 	{
-		const T056_SAMPLE a = pSelf->g_Data[idx];
+		const T056_SAMPLE a = pSelf->sample[idx];
 		const T056_SAMPLE v1 = (a.levl==0)?v0:a;
-		pSelf->g_Data[idx] = v0;
+		pSelf->sample[idx] = v0;
 		v0 = v1;
 	} while (idx-- != 0);
 	
@@ -75,15 +90,15 @@ static uint8_t medianInsert_left(T056_PRIVATE_DATA * const pSelf,T056_SAMPLE val
 static uint8_t medianInsert(T056_PRIVATE_DATA * const pSelf,const T056_SAMPLE val)
 {
 	uint8_t idx;
-	const T056_SAMPLE vm = pSelf->g_Data[T056_MEASUREBUFMID];
+	const T056_SAMPLE vm = pSelf->sample[T056_MEASUREBUFMID];
 	
 	//if (vm==0) {
 	//return medianInsert_right(val,0);
 	//} else
 	if (val.levl<vm.levl) {
 		for(idx=T056_MEASUREBUFMID;idx>0;--idx) {
-			const T056_SAMPLE vr = pSelf->g_Data[idx];
-			const T056_SAMPLE vl = pSelf->g_Data[idx-1];
+			const T056_SAMPLE vr = pSelf->sample[idx];
+			const T056_SAMPLE vl = pSelf->sample[idx-1];
 			if ((val.levl>=vl.levl) && (val.levl<=vr.levl)) {
 				return medianInsert_right(pSelf,val,idx);
 			}
@@ -93,8 +108,8 @@ static uint8_t medianInsert(T056_PRIVATE_DATA * const pSelf,const T056_SAMPLE va
 
 		} else if(val.levl>vm.levl)	{
 		for(idx=T056_MEASUREBUFMID;idx<T056_DATABUFSIZE-1;++idx) {
-			const T056_SAMPLE vl = pSelf->g_Data[idx];
-			const T056_SAMPLE vr = pSelf->g_Data[idx+1];
+			const T056_SAMPLE vl = pSelf->sample[idx];
+			const T056_SAMPLE vr = pSelf->sample[idx+1];
 			if ((val.levl>=vl.levl) && (val.levl<=vr.levl)) {
 				return medianInsert_left(pSelf,val,idx);
 			}
@@ -116,8 +131,8 @@ RET_ERROR_CODE t056_init(T056_PRIVATE_DATA * const pSelf)
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"T056 Init");
 
 	
-	pSelf->g_DataIsBusy = 0;
-	pSelf->g_samples = 0;
+//	pSelf->g_DataIsBusy = 0;
+	pSelf->numSamples = 0;
 
 	MBUS_PDU_reset(&(pSelf->pdu));
 
@@ -139,9 +154,9 @@ void t056_disable(void)
 
 RET_ERROR_CODE t056_get_data(T056_PRIVATE_DATA * const pSelf,T056_DATA * const ps)
 {
-	ps->levl = pSelf->g_Data[T056_MEASUREBUFMID].levl;
+	ps->levl = pSelf->sample[T056_MEASUREBUFMID].levl;
 //	ps->temp = g_Data[T056_MEASUREBUFMID].temp;
-	ps->samples = pSelf->g_samples;
+	ps->samples = pSelf->numSamples;
 	
 	
 	return AC_ERROR_OK;
@@ -164,7 +179,7 @@ static float interpret_pdu_cdab_float(uint8_t * const pData)
 
 static void interpret_pdu(T056_PRIVATE_DATA * const pSelf)
 {
-	if (g_samples > 254) {
+	if (pSelf->numSamples > 254) {
 		return;
 	}
 
@@ -185,15 +200,16 @@ static void interpret_pdu(T056_PRIVATE_DATA * const pSelf)
 	debug_string(NORMAL,szBUF,RAM_STRING);
 
 	medianInsert(pSelf,dv);
-	pSelf->g_samples++;
+	pSelf->numSamples++;
 }
 
-
+/*
 RET_ERROR_CODE t056_reset_data(void)
 {
 	g_samples = 0;
 	return AC_ERROR_OK;
 }
+*/
 
 RET_ERROR_CODE t056_Data2String(const T056_DATA * const st,char * const sz, uint16_t * const len_sz)
 {

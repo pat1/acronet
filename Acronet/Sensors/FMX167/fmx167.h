@@ -13,6 +13,17 @@
  */
 
 
+#define MODULE_PUBLIC_DATATYPE FMX167_DATA
+
+#define MODULE_INTERFACE_INIT fmx167_init
+#define MODULE_INTERFACE_ENABLE fmx167_enable
+#define MODULE_INTERFACE_DISABLE fmx167_disable
+#define MODULE_INTERFACE_YIELD fmx167_Yield
+#define MODULE_INTERFACE_RESET fmx167_reset_data
+#define MODULE_INTERFACE_GETDATA fmx167_get_data
+#define MODULE_INTERFACE_DATA2STRING fmx167_Data2String
+
+
 #ifndef FMX167_H_
 #define FMX167_H_
 
@@ -29,31 +40,11 @@ typedef struct
 	uint16_t		level;
 } FMX167_DATA;
 
-#define MODULE_PUBLIC_DATATYPE FMX167_DATA
-
-#define MODULE_INTERFACE_INIT fmx167_init
-#define MODULE_INTERFACE_ENABLE fmx167_enable
-#define MODULE_INTERFACE_DISABLE fmx167_disable
-#define MODULE_INTERFACE_YIELD fmx167_Yield
-#define MODULE_INTERFACE_RESET fmx167_reset_data
-#define MODULE_INTERFACE_GETDATA fmx167_get_data
-#define MODULE_INTERFACE_DATA2STRING fmx167_Data2String
 
 #define MODINST_PARAM_ID MOD_ID_FMX167
 #include "Acronet/datalogger/modinst/module_interface_declaration.h"
 
 #undef MODINST_PARAM_ID
-/*
-#undef MODULE_PUBLIC_DATATYPE
-
-#undef MODULE_INTERFACE_INIT
-#undef MODULE_INTERFACE_ENABLE
-#undef MODULE_INTERFACE_DISABLE
-#undef MODULE_INTERFACE_YIELD
-#undef MODULE_INTERFACE_RESET
-#undef MODULE_INTERFACE_GETDATA
-#undef MODULE_INTERFACE_DATA2STRING
-*/
 
 
 #endif /* FMX167_H_ */

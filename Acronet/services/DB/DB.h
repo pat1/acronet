@@ -18,7 +18,7 @@
 
 #include "Acronet/drivers/AT24CXX/AT24CXX.h"
 #include "Acronet/drivers/ExtEEPROM/ext_eeprom.h"
-#include "Acronet/utils/AnyType/AnyType.h"
+//#include "Acronet/utils/AnyType/AnyType.h"
 
 struct DB_RECORD;
 
@@ -26,7 +26,7 @@ struct DB_RECORD;
 typedef AT24CXX_iterator DB_ITERATOR;
 
 
-typedef ANY_TYPE DB_FIELD;
+//typedef ANY_TYPE DB_FIELD;
 
 void DB_iterator_get_begin(DB_ITERATOR * const pIter);
 void DB_iterator_get_end(DB_ITERATOR * const pIter);
@@ -56,6 +56,6 @@ RET_ERROR_CODE DB_append_record(const struct DB_RECORD * const pDS);
 RET_ERROR_CODE DB_put_record(DB_ITERATOR * const pIter,const struct DB_RECORD * const pDS);
 
 RET_ERROR_CODE DB_mark_record(const DB_ITERATOR iter, const uint8_t flag);
-RET_ERROR_CODE DB_select(const struct DB_RECORD * const pRecord,const uint8_t fieldID, DB_FIELD * const pField);
+//RET_ERROR_CODE DB_select(const struct DB_RECORD * const pRecord,const uint8_t fieldID, DB_FIELD * const pField);
 
 #endif /* DB_H_ */

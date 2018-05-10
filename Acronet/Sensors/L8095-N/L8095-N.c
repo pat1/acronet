@@ -23,7 +23,7 @@
 #include <conf_board.h>
 #include <conf_usart_serial.h>
 #include "config/conf_usart_serial.h"
-#include "Acronet/services/NMEA/nmea.h"
+#include "Acronet/channels/NMEA/nmea.h"
 #include "Acronet/drivers/SP336/SP336.h"
 #include "Acronet/Sensors/L8095-N/L8095-N.h"
 #include "Acronet/services/config/config.h"

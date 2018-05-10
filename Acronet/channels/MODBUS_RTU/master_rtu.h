@@ -41,8 +41,8 @@ typedef struct {
 
 void MBUS_PDU_reset(MBUS_PDU * const pPDU);
 
-bool MBUS_is_empty(const uint8_t ch_id);
-void MBUS_reset(const uint8_t ch_id);
+//bool MBUS_is_empty(const uint8_t ch_id);
+//void MBUS_reset(const uint8_t ch_id);
 //uint8_t MBUS_get_byte(const uint8_t ch_id);
 
 //RET_ERROR_CODE MBUS_issue_cmd(const uint8_t ch_id,const uint8_t * const pBuf,uint16_t len);
@@ -52,7 +52,7 @@ void MBUS_reset(const uint8_t ch_id);
 
 #define MBUS_RELEASE(ch)			MBUS_PREP( MBUS_release_CH	, ch ) 
 #define MBUS_LOCK(ch)				MBUS_PREP( MBUS_lock_CH		, ch ) 
-#define MBUS_IS_EMPTY(ch)			MBUS_PREP( MBUS_is_empty_CH , ch ) 
+#define MBUS_IS_RIPE(ch,address)	MBUS_PREP( MBUS_is_ripe_CH , ch , address ) 
 #define MBUS_GET_BYTE(ch)			MBUS_PREP( MBUS_get_byte_CH , ch ) 
 //#define MBUS_RESET(ch)				MBUS_PREP( MBUS_reset_CH	, ch ) 
 #define MBUS_ISSUE_CMD(ch,a1,a2)	MBUS_PREP( MBUS_issue_cmd_CH , ch , a1 , a2 )
@@ -69,10 +69,10 @@ void MBUS_release_CH1(void);
 void MBUS_release_CH2(void);
 void MBUS_release_CH3(void);
 
-bool MBUS_is_empty_CH0(void);
-bool MBUS_is_empty_CH1(void);
-bool MBUS_is_empty_CH2(void);
-bool MBUS_is_empty_CH3(void);
+bool MBUS_is_ripe_CH0(const uint8_t address);
+bool MBUS_is_ripe_CH1(const uint8_t address);
+bool MBUS_is_ripe_CH2(const uint8_t address);
+bool MBUS_is_ripe_CH3(const uint8_t address);
 
 uint8_t MBUS_get_byte_CH0(void);
 uint8_t MBUS_get_byte_CH1(void);
@@ -93,5 +93,6 @@ uint8_t MBUS_build_dgram_CH0(MBUS_PDU * const pPDU,uint8_t b);
 uint8_t MBUS_build_dgram_CH1(MBUS_PDU * const pPDU,uint8_t b);
 uint8_t MBUS_build_dgram_CH2(MBUS_PDU * const pPDU,uint8_t b);
 uint8_t MBUS_build_dgram_CH3(MBUS_PDU * const pPDU,uint8_t b);
+
 
 #endif /* MODBUS_MASTER_RTU_H_ */

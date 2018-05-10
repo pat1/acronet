@@ -20,8 +20,8 @@
 
 #include "Acronet/globals.h"
 #include "Acronet/drivers/SP336/SP336.h"
-#include "Acronet/services/MODBUS_RTU/mb_crc.h"
-#include "Acronet/services/MODBUS_RTU/master_rtu.h"
+#include "Acronet/channels/MODBUS_RTU/mb_crc.h"
+#include "Acronet/channels/MODBUS_RTU/master_rtu.h"
 
 typedef struct {
 	uint8_t status;
@@ -99,11 +99,12 @@ typedef struct {
 #pragma message "MODBUS CHANNELS 3"
 #endif
 
+#if (MODBUS_CHANNELS != 0)
 volatile uint8_t buf_usart[MODBUS_CHANNELS][MODBUS_UART_BUF_SIZE];
 
 volatile uint8_t idx_beg_usart[MODBUS_CHANNELS] = {0};
 volatile uint8_t idx_end_usart[MODBUS_CHANNELS] = {0};
-
+#endif
 
 #if   SP336_MODE == SP336_MODE_LOOPBACK
 #pragma message "INFO: Compiling with SP336 mode loopback"
@@ -149,7 +150,7 @@ volatile uint8_t idx_end_usart[MODBUS_CHANNELS] = {0};
 #pragma message "NO SP336-2 UART defined"
 #endif
 
-
+#if (MODBUS_CHANNELS != 0)
 void MBUS_PDU_reset(MBUS_PDU * const pPDU)
 {
 	pPDU->func = MBUS_STATUS_BEGIN;
@@ -201,6 +202,7 @@ static void cb_usartx(const uint8_t n,const uint8_t c)
 	}
 	
 }
+#endif
 
 #ifdef MODBUS_CHAN_0_PUT
 #error "A symbol MODBUS_CHAN_0_PUT has been defined elsewhere"
@@ -259,7 +261,7 @@ static void cb_usartx(const uint8_t n,const uint8_t c)
 
 
 
-uint8_t MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,const uint8_t b)
+static uint8_t MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,const uint8_t b)
 {
 	const uint8_t status = pControl->status;
 	
@@ -331,17 +333,17 @@ uint8_t MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,con
 
 #ifdef USES_MODBUS_CHAN_0
 
-bool MBUS_is_empty_CH0(void)
+static MBUS_CONTROL g_bc0 = {.status = MBUS_STATUS_BEGIN};
+
+bool MBUS_is_ripe_CH0(const uint8_t address)
 {
-	return is_usartx_empty(MODBUS_CHAN_0_IDX);	
+	return (address==g_bc0.addr) && (!is_usartx_empty(MODBUS_CHAN_0_IDX));	
 }
 
 uint8_t MBUS_get_byte_CH0(void)
 {
 	return get_usartx_byte(MODBUS_CHAN_0_IDX);
 }
-
-static MBUS_CONTROL g_bc0 = {.status = MBUS_STATUS_BEGIN};
 
 RET_ERROR_CODE MBUS_issue_cmd_CH0(const uint8_t * const pBuf,uint16_t len)
 {
@@ -400,17 +402,17 @@ ISR(MODBUS_CHAN_0_ISR)
 
 #ifdef USES_MODBUS_CHAN_1
 
-bool MBUS_is_empty_CH1(void)
+static MBUS_CONTROL g_bc1 = {.status = MBUS_STATUS_BEGIN};
+
+bool MBUS_is_ripe_CH1(const uint8_t address)
 {
-	return is_usartx_empty(MODBUS_CHAN_1_IDX);
+	return (address==g_bc1.addr) && (!is_usartx_empty(MODBUS_CHAN_1_IDX));
 }
 
 uint8_t MBUS_get_byte_CH1(void)
 {
 	return get_usartx_byte(MODBUS_CHAN_1_IDX);
 }
-
-static MBUS_CONTROL g_bc1 = {.status = MBUS_STATUS_BEGIN};
 
 RET_ERROR_CODE MBUS_issue_cmd_CH1(const uint8_t * const pBuf,uint16_t len)
 {
@@ -469,17 +471,17 @@ ISR(MODBUS_CHAN_1_ISR)
 
 #ifdef USES_MODBUS_CHAN_2
 
-bool MBUS_is_empty_CH2(void)
+static MBUS_CONTROL g_bc2 = {.status = MBUS_STATUS_BEGIN};
+
+bool MBUS_is_ripe_CH2(const uint8_t address)
 {
-	return is_usartx_empty(MODBUS_CHAN_2_IDX);
+	return (address==g_bc2.addr) && (!is_usartx_empty(MODBUS_CHAN_2_IDX));
 }
 
 uint8_t MBUS_get_byte_CH2(void)
 {
 	return get_usartx_byte(MODBUS_CHAN_2_IDX);
 }
-
-static MBUS_CONTROL g_bc2 = {.status = MBUS_STATUS_BEGIN};
 
 RET_ERROR_CODE MBUS_issue_cmd_CH2(const uint8_t * const pBuf,uint16_t len)
 {
@@ -538,18 +540,17 @@ ISR(MODBUS_CHAN_2_ISR)
 
 #ifdef USES_MODBUS_CHAN_3
 
-bool MBUS_is_empty_CH3(void)
+static MBUS_CONTROL g_bc3 = {.status = MBUS_STATUS_BEGIN};
+
+bool MBUS_is_ripe_CH3(const uint8_t address)
 {
-	return is_usartx_empty(MODBUS_CHAN_3_IDX);
+	return (address==g_bc3.addr) && (!is_usartx_empty(MODBUS_CHAN_3_IDX));
 }
 
 uint8_t MBUS_get_byte_CH3(void)
 {
 	return get_usartx_byte(MODBUS_CHAN_3_IDX);
 }
-
-
-static MBUS_CONTROL g_bc3 = {.status = MBUS_STATUS_BEGIN};
 
 RET_ERROR_CODE MBUS_issue_cmd_CH3(const uint8_t * const pBuf,uint16_t len)
 {

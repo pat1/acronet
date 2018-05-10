@@ -22,7 +22,7 @@
 
 
 
-RET_ERROR_CODE gpio2log_init(void)
+static RET_ERROR_CODE gpio2log_init(void)
 {
 	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"GPIO2LOG init");
 
@@ -72,7 +72,7 @@ static void write2log(const uint8_t vals,const char szTemplate[])
 
 static volatile uint8_t flags = 0;
 
-bool gpio2log_Yield(void)
+static bool gpio2log_Yield(void)
 {
 
 	

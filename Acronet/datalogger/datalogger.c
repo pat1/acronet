@@ -82,19 +82,7 @@ enum {DATASTORE_LOG = 0,DATASTORE_DB_RT = 1,DATASTORE_DB = 2};
 //#define DATASTORE_DB    ((uint8_t) 2)
 
 
-typedef struct {
-	uint32_t data_timestamp;
-} DL_INTERNAL_DATA;
 
-static void dl_get_data(DL_INTERNAL_DATA * const ps)
-{
-	
-}
-
-static void dl_reset_data(void)
-{
-	
-}
 
 bool dl_flush_buffers(void);
 
@@ -112,23 +100,6 @@ bool dl_flush_buffers(void);
 //
 //#endif
 
-static RET_ERROR_CODE dl_Data2String(    const DL_INTERNAL_DATA * const st
-										,char * const sz
-										, int16_t * len_sz )
-{
-	
-#ifdef MQTT_AS_PRIMARY
-	int16_t len = snprintf_P(	sz,*len_sz ,PSTR("TIME=%lu") ,st->data_timestamp );
-#else
-	int16_t len = snprintf_P(	sz,*len_sz ,PSTR("#TIME=%lu") ,st->data_timestamp );	
-#endif
-	
-	
-	const RET_ERROR_CODE e = (len < *len_sz) ? AC_ERROR_OK : AC_BUFFER_OVERFLOW;
-	*len_sz = len;
-	return e;
-
-}
 
 static void dl_enable(void)
 {
@@ -233,6 +204,33 @@ static uint8_t  dl_snapshot_make(const uint32_t ts);
 static void		dl_snapshot_init(const uint32_t ts);
 
 static RET_ERROR_CODE dl_task_sync_time( void );
+
+
+static void dl_get_data(DB_RECORD * const ps)
+{
+	
+}
+
+static void dl_reset_data(void)
+{
+	
+}
+
+static RET_ERROR_CODE dl_Data2String(    const DB_RECORD * const st ,char * const sz , int16_t * len_sz )
+{
+	
+	#ifdef MQTT_AS_PRIMARY
+	int16_t len = snprintf_P(	sz,*len_sz ,PSTR("TIME=%lu") ,st->data_timestamp );
+	#else
+	int16_t len = snprintf_P(	sz,*len_sz ,PSTR("#TIME=%lu") ,st->data_timestamp );
+	#endif
+	
+	
+	const RET_ERROR_CODE e = (len < *len_sz) ? AC_ERROR_OK : AC_BUFFER_OVERFLOW;
+	*len_sz = len;
+	return e;
+
+}
 
 
 //static void dl_test_psw(void)
@@ -995,17 +993,17 @@ static RET_ERROR_CODE dl_search_record_by_date(uint32_t dt,enum DL_EEPROM_SEARCH
 		//}
 		
 		if(reg_dir == 0) { //if we are searching backward
-			if(ds.dl_data.data_timestamp<dt) {
+			if(ds.data_timestamp<dt) {
 				//debug_string_1P(VERBOSE,PSTR("Going from backward to forward\r\n"));
 				reg_skip >>= 1;
 				reg_dir = 1;
-			} else if(ds.dl_data.data_timestamp==dt){
+			} else if(ds.data_timestamp==dt){
 				break;
 			}
 		} else {//if we are searching forward
-			if(ds.dl_data.data_timestamp==dt){
+			if(ds.data_timestamp==dt){
 				break;
-			} else if(ds.dl_data.data_timestamp>dt){
+			} else if(ds.data_timestamp>dt){
 				//debug_string_1P(VERBOSE,PSTR("Going from forward to backward\r\n"));
 				reg_skip >>= 1;
 				reg_dir = 0;
@@ -1065,7 +1063,7 @@ static RET_ERROR_CODE dl_search_record_by_date(uint32_t dt,enum DL_EEPROM_SEARCH
 	if(g_log_verbosity>=NORMAL) {
 		debug_string_1P(NORMAL,PSTR("\tRecord found "));
 		AT24CXX_iterator_report(it);
-		snprintf_P(szBuf,sizeof(szBuf),PSTR("\r\n\tRecord  dt=%lu\r\n"),ds.dl_data.data_timestamp);
+		snprintf_P(szBuf,sizeof(szBuf),PSTR("\r\n\tRecord  dt=%lu\r\n"),ds.data_timestamp);
 		debug_string(NORMAL,szBuf,RAM_STRING);
 	}
 
@@ -2139,7 +2137,7 @@ RET_ERROR_CODE send_data_with_post( DL_SEND_PARAMS * const pPara )
 		DB_iterator_moveback(&it,1);
 		DB_get_record(&it,&ds);
 		
-		if (ds.dl_data.data_timestamp<min_date_boundary)
+		if (ds.data_timestamp<min_date_boundary)
 		{
 			debug_string_1P(NORMAL,PSTR("*** Minimum date reached ***"));
 			break;
@@ -2155,16 +2153,18 @@ RET_ERROR_CODE send_data_with_post( DL_SEND_PARAMS * const pPara )
 		
 		for(MODULE_ID  im=DL_MODULE_BEG;im<DL_MODULE_END;++im)
 		{
-			DATA2STRING fn_stat2string = iface_module[im].pFN_Data2String;
+			DATA2STRING fn_data2string = iface_module[im].pFN_Data2String;
 
-			const size_t off = selectDataSource(im);
-			if ((off==0xFFFF) || (fn_stat2string==NULL))
+			//const size_t off = selectDataSource(im);
+			//if ((off==0xFFFF) || (fn_stat2string==NULL))
+			if (fn_data2string==NULL)
 			{
-				debug_string_1P(NORMAL,PSTR("[WARNING] send with post stats module unknown, skip"));
+				debug_string_1P(NORMAL,PSTR("[WARNING] Data2String is null, skip"));
 				continue;
 			}
 			int16_t lb = BUFFER_SIZE - post_data_end;
-			if(AC_ERROR_OK == fn_stat2string( off+(uint8_t*)&ds , szBuf+post_data_end , &lb)) {
+			//if(AC_ERROR_OK == fn_stat2string( off+(uint8_t*)&ds , szBuf+post_data_end , &lb)) {
+			if(AC_ERROR_OK == fn_data2string( &ds,szBuf+post_data_end , &lb)) {
 				post_data_end += lb;
 			} else {
 				debug_string_1P(NORMAL,PSTR("[WARNING] send with post buffer overflow skipping records"));
@@ -2215,7 +2215,7 @@ RET_ERROR_CODE send_data_with_post( DL_SEND_PARAMS * const pPara )
 
 	//Check if there are other records to send
 	DB_iterator_get_begin(&itBeg);
-	if ((ds.dl_data.data_timestamp<min_date_boundary) || (pPara->iter_send.plain == itBeg.plain))
+	if ((ds.data_timestamp<min_date_boundary) || (pPara->iter_send.plain == itBeg.plain))
 	{
 		goto quit_senddatapost_task;
 	}
@@ -2315,7 +2315,7 @@ RET_ERROR_CODE send_data_with_MQTT(   DL_SEND_PARAMS * const pPara
 		DB_iterator_moveback(&it,1);
 		DB_get_record(&it,&ds);
 		
-		if (ds.dl_data.data_timestamp<min_date_boundary)
+		if (ds.data_timestamp<min_date_boundary)
 		{
 			debug_string_1P(NORMAL,PSTR("*** Minimum date reached ***"));
 			break;
@@ -2331,17 +2331,18 @@ RET_ERROR_CODE send_data_with_MQTT(   DL_SEND_PARAMS * const pPara
 		
 		for(MODULE_ID  im=DL_MODULE_BEG;im<DL_MODULE_END;++im)
 		{
-			DATA2STRING fn_stat2string = iface_module[im].pFN_Data2String;
+			DATA2STRING fn_data2string = iface_module[im].pFN_Data2String;
 
-			const size_t off = selectDataSource(im);
+			//const size_t off = selectDataSource(im);
 
-			if ((off==0xFFFF) || (fn_stat2string==NULL))
+			//if ((off==0xFFFF) || (fn_stat2string==NULL))
+			if (fn_data2string==NULL)
 			{
-				debug_string_1P(NORMAL,PSTR("[WARNING] send with MQTT stats module unknown, skip"));
+				debug_string_1P(NORMAL,PSTR("[WARNING] Data2String null method, skip"));
 				continue;
 			}
 			int16_t lb = PAYLOAD_SIZE - lenPayload;
-			if(AC_ERROR_OK == fn_stat2string(off+(uint8_t*)&ds,szPayLoad+lenPayload,&lb)) {
+			if(AC_ERROR_OK == fn_data2string( &ds,szPayLoad+lenPayload,&lb)) {
 				lenPayload += lb;
 			} else {
 				debug_string_1P(NORMAL,PSTR("[WARNING] send with MQTT buffer overflow skipping records"));
@@ -2399,7 +2400,7 @@ RET_ERROR_CODE send_data_with_MQTT(   DL_SEND_PARAMS * const pPara
 
 	//Check if there are other records to send
 	DB_iterator_get_begin(&itBeg);
-	if ((ds.dl_data.data_timestamp<min_date_boundary) || (pPara->iter_send.plain == itBeg.plain))
+	if ((ds.data_timestamp<min_date_boundary) || (pPara->iter_send.plain == itBeg.plain))
 	{
 		goto quit_senddatamqtt_task;
 	}
@@ -2452,13 +2453,13 @@ static RET_ERROR_CODE send_data_with_RMAP_serialize(	 DB_RECORD * const pDS
 
 	for(MODULE_ID  im=DL_MODULE_BEG;im<DL_MODULE_END;++im)
 	{
-		DATA2STRINGRMAP fn_stat2stringRMAP = iface_module[im].pFN_Data2StringRMAP;
+		DATA2STRINGRMAP fn_data2stringRMAP = iface_module[im].pFN_Data2StringRMAP;
 
-		const size_t off = selectDataSource(im);
+		//const size_t off = selectDataSource(im);
 
-		if ((off==0xFFFF) || (fn_stat2stringRMAP==NULL))
+		if (fn_data2stringRMAP==NULL)
 		{
-			debug_string_1P(NORMAL,PSTR("[WARNING] send with RMAP stats module unknown, skip"));
+			debug_string_1P(NORMAL,PSTR("[WARNING] Data2String null method, skip"));
 			continue;
 		}
 
@@ -2473,8 +2474,8 @@ static RET_ERROR_CODE send_data_with_RMAP_serialize(	 DB_RECORD * const pDS
 
 			int16_t lenPayload = sizeof(szPayLoad);
 					
-			if(AC_ERROR_OK == fn_stat2stringRMAP(	 &subModule
-													,off+(void*)pDS
+			if(AC_ERROR_OK == fn_data2stringRMAP(	 &subModule
+													,pDS
 													,pDS->dl_data.data_timestamp
 													,g_timing.task_store
 													,szTopic+lenTopicPreamble
@@ -2691,7 +2692,7 @@ RET_ERROR_CODE send_data_with_RMAP(   DL_RMAP_SEND_PARAMS * const pPara
 ///////////////////////////////////////////////////////////////////////////////
 
 
-#define SNAPSHOT_SIZE 16 //Must be a power of 2
+#define SNAPSHOT_SIZE 8 //Must be a power of 2
 static volatile DB_RECORD g_data_snapshot[SNAPSHOT_SIZE];
 static volatile uint8_t g_data_snapshot_beg = 0;
 static volatile uint8_t g_data_snapshot_end = 0;
@@ -2727,7 +2728,7 @@ static void  dl_snapshot_init(const uint32_t ts)
 	g_data_snapshot_end = 0;
 
 	volatile DB_RECORD * const p_item = &g_data_snapshot[0];
-	p_item->dl_data.data_timestamp = (ts==-1)?hal_rtc_get_time():ts;
+	p_item->data_timestamp = (ts==-1)?hal_rtc_get_time():ts;
 	p_item->flags = 0;
 
 }
@@ -2735,7 +2736,7 @@ static void  dl_snapshot_init(const uint32_t ts)
 static uint8_t  dl_snapshot_make(const uint32_t ts)
 {
 	
-	volatile DB_RECORD * const p_item = &g_data_snapshot[(g_data_snapshot_end & (SNAPSHOT_SIZE-1))];
+	volatile DB_RECORD * const p_rec = &g_data_snapshot[(g_data_snapshot_end & (SNAPSHOT_SIZE-1))];
 
 
 	for(MODULE_ID  im=DL_MODULE_BEG;im<DL_MODULE_END;++im)
@@ -2743,25 +2744,16 @@ static uint8_t  dl_snapshot_make(const uint32_t ts)
 		GETDATA fn_getStats = iface_module[im].pFN_GetData;
 		RESETDATA fn_resetStats = iface_module[im].pFN_ResetData;
 
-		const size_t off = selectDataSource(im);
+		//const size_t off = selectDataSource(im);
 		
-		if ((off==0xFFFF))
-		{
-			char sz[16];
-			debug_string(NORMAL,PSTR("[ERROR] Snapshot mismatch @ module ID = "),PGM_STRING);
-			snprintf_P(sz,sizeof(sz),PSTR("%u\r\n"),im);
-			debug_string(NORMAL,sz,RAM_STRING);
-			continue;
-		}
-
-		fn_getStats(off + (uint8_t *) p_item);
-		fn_resetStats();
+		if(fn_getStats)	fn_getStats(p_rec);
+		if(fn_resetStats) fn_resetStats();
 
 	}
 
 
-	p_item->dl_data.data_timestamp = (ts==-1)?hal_rtc_get_time():ts;
-	p_item->flags = 0;
+	p_rec->data_timestamp = (ts==-1)?hal_rtc_get_time():ts;
+	p_rec->flags = 0;
 
 	dl_snapshot_iter_inc(&g_data_snapshot_end);
 	if(g_data_snapshot_end==g_data_snapshot_beg) {
@@ -2769,7 +2761,7 @@ static uint8_t  dl_snapshot_make(const uint32_t ts)
 		dl_snapshot_iter_inc(&g_data_snapshot_beg);
 	}
 
-	g_data_snapshot[(g_data_snapshot_end & (SNAPSHOT_SIZE-1))].dl_data.data_timestamp = 0;
+	g_data_snapshot[(g_data_snapshot_end & (SNAPSHOT_SIZE-1))].data_timestamp = 0;
 	g_data_snapshot[(g_data_snapshot_end & (SNAPSHOT_SIZE-1))].flags = 0;
 
 
@@ -2826,7 +2818,7 @@ bool dl_flush_buffers(void)
 	uint32_t l;
 	LOG_get_length(&l);
 
-	if( ((PARTITION_LOG_SIZE/3)*2) < l ) {
+	if( ((LOG_EEPROM_PARTITION_SIZE/3)*2) < l ) {
 		task_status_send_log =TASK_READY;
 	}
 
@@ -3134,7 +3126,7 @@ void dl_test_do_dataset(void)
 			filler = 0xA;
 		}
 		
-		data.dl_data.data_timestamp = t0 + td;
+		data.data_timestamp = t0 + td;
 		
 		DB_iterator_get_end(&it);
 		DB_append_record(&data);
@@ -3406,7 +3398,7 @@ RET_ERROR_CODE cap_consume(const char * const pDoc,const uint16_t lenDoc)
 	e = dl_MQTT_tcp_open(&TCPBufLen);
 	if ( AC_ERROR_OK != e)	{	return e;  }
 
-	char szBuf[PARTITION_LOG_SIZE+2];
+	char szBuf[LOG_EEPROM_PARTITION_SIZE+2];
 	int buflen = sizeof(szBuf);
 
 	int len = MQTTSerialize_connect(szBuf, buflen, data);
@@ -3685,8 +3677,8 @@ looppp:
 
 	LOG_init();
 
-	AT24CXX_iterator b = { .plain = PARTITION_LOG_BEGIN };
-	AT24CXX_iterator e = { .plain = PARTITION_LOG_END };
+	AT24CXX_iterator b = { .plain = LOG_EEPROM_PARTITION_BEGIN };
+	AT24CXX_iterator e = { .plain = LOG_EEPROM_PARTITION_END };
 	DB_dump(b,e);
 
 	while(1) {	
@@ -3695,8 +3687,8 @@ looppp:
 		//AT24CXX_iterator_report(g_log_iter_beg);
 		//AT24CXX_iterator_report(g_log_iter_end);
 		
-		AT24CXX_iterator b = { .plain = PARTITION_LOG_BEGIN };
-		AT24CXX_iterator e = { .plain = PARTITION_LOG_END };
+		AT24CXX_iterator b = { .plain = LOG_EEPROM_PARTITION_BEGIN };
+		AT24CXX_iterator e = { .plain = LOG_EEPROM_PARTITION_END };
 		//DB_dump(b,e);
 		dl_MQTT_sendFromDatastore_2(DATASTORE_LOG);
 		//DB_dump(b,e);
@@ -3735,9 +3727,9 @@ void dl_dump_db(void)
 	if (itBeg.plain > itEnd.plain) {
 		DB_ITERATOR itt;
 		
-		itt.plain = PARTITION_DB_END;
+		itt.plain = DB_EEPROM_PARTITION_END;
 		DB_dump(itBeg,itt);
-		itt.plain = PARTITION_DB_BEGIN;
+		itt.plain = DB_EEPROM_PARTITION_BEGIN;
 		DB_dump(itt,itEnd);
 
 		} else {
@@ -3787,14 +3779,15 @@ void dl_dump_db2(void)
 		{
 			DATA2STRING fn_stat2string = iface_module[im].pFN_Data2String;
 
-			const size_t off = selectDataSource(im);
-			if ((off==0xFFFF) || (fn_stat2string==NULL))
+//			const size_t off = selectDataSource(im);
+//			if ((off==0xFFFF) || (fn_stat2string==NULL))
+			if (fn_stat2string==NULL)
 			{
-				debug_string_1P(NORMAL,PSTR("[WARNING] send with post stats module unknown, skip"));
+				debug_string_1P(NORMAL,PSTR("[WARNING] Data2String NULL method, skip"));
 				continue;
 			}
 			
-			fn_stat2string( off+(uint8_t*)&ds , szBuf+szEnd , &lb);
+			fn_stat2string( &ds , szBuf+szEnd , &lb);
 			szEnd += lb;
 			lb = sizeof(szBuf) - szEnd;
 		}

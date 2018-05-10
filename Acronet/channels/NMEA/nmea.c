@@ -1,9 +1,13 @@
 /*
- * nmea.c
+ * ACRONET Project
+ * http://www.acronet.cc
  *
- * Created: 20/04/2018 15:47:50
- *  Author: fabio
- */ 
+ * Copyright ( C ) 2014 Acrotec srl
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms
+ * of the EUPL v.1.1 license.  See http://ec.europa.eu/idabc/eupl.html for details.
+ */
 
 #include "Acronet/setup.h"
 #include "Acronet/HAL/hal_interface.h"
@@ -16,7 +20,7 @@
 
 #include "Acronet/globals.h"
 #include "Acronet/drivers/SP336/SP336.h"
-#include "Acronet/services/NMEA/nmea.h"
+#include "Acronet/channels/NMEA/nmea.h"
 
 #define NMEA_SENTENCE_MAX_LENGTH 90
 
@@ -97,7 +101,7 @@ static void NMEALine_reset(const uint8_t ch)
 	g_idxProcessNMEALine[ch] = 0;
 }
 
-char NMEALine_getChar(const uint8_t ch)
+static char NMEALine_getChar(const uint8_t ch)
 {
 	
 	//TODO: add critical section here ?
@@ -158,7 +162,7 @@ static uint8_t __attribute__((const)) ascii_hex(const uint8_t c)
 }
 
 
-static uint8_t NMEALine_checksum_check(char * const psz,const uint8_t len_sz)
+uint8_t NMEA_Line_checksum_check(char * const psz,const uint8_t len_sz)
 {
 	uint8_t ix = 0;
 	uint8_t r = 0;
@@ -276,7 +280,7 @@ char NMEA_Line_getChar_CH0(void)
 }
 
 
-void NMEA_Line_addChar_CH0(const char c)
+static void NMEA_Line_addChar_CH0(const char c)
 {
 	if(g_idxBufferNMEALine[NMEA_CHAN_0_IDX]<NMEA_UART_BUF_SIZE) {
 		g_szNMEALine[NMEA_CHAN_0_IDX][g_idxBufferNMEALine[NMEA_CHAN_0_IDX]++]=c;
@@ -340,7 +344,7 @@ char NMEA_Line_getChar_CH1(void)
 }
 
 
-void NMEA_Line_addChar_CH1(const char c)
+static void NMEA_Line_addChar_CH1(const char c)
 {
 	if(g_idxBufferNMEALine[NMEA_CHAN_1_IDX]<NMEA_UART_BUF_SIZE) {
 		g_szNMEALine[NMEA_CHAN_1_IDX][g_idxBufferNMEALine[NMEA_CHAN_1_IDX]++]=c;
@@ -357,6 +361,16 @@ void NMEA_Line_disable_RX_CH1(void)
 	usart_rx_disable(&NMEA_CHAN_1_USART);
 }
 
+void NMEA_Line_enable_TX_CH1(void)
+{
+	usart_tx_enable(&NMEA_CHAN_1_USART);
+}
+
+void NMEA_Line_disable_TX_CH1(void)
+{
+	usart_tx_disable(&NMEA_CHAN_1_USART);
+}
+
 void NMEA_Line_putStr_CH1(const char * const psz,const uint16_t maxlen)
 {
 	NMEA_CHAN_1_PUT(psz,maxlen);
@@ -366,7 +380,7 @@ void NMEA_Line_putStr_CH1(const char * const psz,const uint16_t maxlen)
 ISR(NMEA_CHAN_1_ISR)
 {
 	//usart_putchar(USART_DEBUG,'.');
-	NMEA_Line_addChar_CH2(NMEA_CHAN_1_USART.DATA);
+	NMEA_Line_addChar_CH1(NMEA_CHAN_1_USART.DATA);
 }
 
 #endif
@@ -394,7 +408,7 @@ char NMEA_Line_getChar_CH2(void)
 }
 
 
-void NMEA_Line_addChar_CH2(const char c)
+static void NMEA_Line_addChar_CH2(const char c)
 {
 	if(g_idxBufferNMEALine[NMEA_CHAN_2_IDX]<NMEA_UART_BUF_SIZE) {
 		g_szNMEALine[NMEA_CHAN_2_IDX][g_idxBufferNMEALine[NMEA_CHAN_2_IDX]++]=c;
@@ -409,6 +423,16 @@ void NMEA_Line_enable_RX_CH2(void)
 void NMEA_Line_disable_RX_CH2(void)
 {
 	usart_rx_disable(&NMEA_CHAN_2_USART);
+}
+
+void NMEA_Line_enable_TX_CH2(void)
+{
+	usart_tx_enable(&NMEA_CHAN_2_USART);
+}
+
+void NMEA_Line_disable_TX_CH2(void)
+{
+	usart_tx_disable(&NMEA_CHAN_2_USART);
 }
 
 void NMEA_Line_putStr_CH2(const char * const psz,const uint16_t maxlen)
@@ -448,7 +472,7 @@ char NMEA_Line_getChar_CH3(void)
 }
 
 
-void NMEA_Line_addChar_CH3(const char c)
+static void NMEA_Line_addChar_CH3(const char c)
 {
 	if(g_idxBufferNMEALine[NMEA_CHAN_3_IDX]<NMEA_UART_BUF_SIZE) {
 		g_szNMEALine[NMEA_CHAN_3_IDX][g_idxBufferNMEALine[NMEA_CHAN_3_IDX]++]=c;
@@ -463,6 +487,16 @@ void NMEA_Line_enable_RX_CH3(void)
 void NMEA_Line_disable_RX_CH3(void)
 {
 	usart_rx_disable(&NMEA_CHAN_3_USART);
+}
+
+void NMEA_Line_enable_TX_CH3(void)
+{
+	usart_tx_enable(&NMEA_CHAN_3_USART);
+}
+
+void NMEA_Line_disable_TX_CH3(void)
+{
+	usart_tx_disable(&NMEA_CHAN_3_USART);
 }
 
 void NMEA_Line_putStr_CH3(const char * const psz,const uint16_t maxlen)

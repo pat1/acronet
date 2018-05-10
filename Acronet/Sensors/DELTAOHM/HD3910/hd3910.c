@@ -18,9 +18,23 @@
 #include "Acronet/globals.h"
 #include "Acronet/Sensors/DELTAOHM/HD3910/hd3910.h"
 #include "Acronet/drivers/SP336/SP336.h"
-#include "Acronet/services/MODBUS_RTU/mb_crc.h"
-#include "Acronet/services/MODBUS_RTU/master_rtu.h"
+#include "Acronet/channels/MODBUS_RTU/mb_crc.h"
+#include "Acronet/channels/MODBUS_RTU/master_rtu.h"
 
+////////////////////////////////////////////////////////////////////////////////////
+//
+// HD3910 module
+// - modbus connected device
+// each instance of this module requires its own command to be spawned through
+// the periodic function; this command is defined in the HD3910_PER_ISTANCE_CMD
+// that is a BOOST::preprocessor sequence of tuples
+// each tuple is the command, the sequence must contain as many tuples as many
+// instances of the module
+//
+
+#ifndef HD3910_PER_ISTANCE_CMD 
+#error "HD3910 module requires the definition of the HD3910_PER_ISTANCE_CMD variable"
+#endif
 
 #define HD3910_MEASURES_NUMBER	32
 #define HD3910_DATABUFSIZE		17	// Raw measures buffer size. On this measures array statistics are done.
@@ -121,18 +135,18 @@ static RET_ERROR_CODE hd3910_init(HD3910_PRIVATE_DATA * const pSelf)
 	return AC_ERROR_OK;
 }
 
+/*
 static void hd3910_enable(void)
 {
 	//usart_set_rx_interrupt_level(SP336_USART0,USART_INT_LVL_LO);
 	//usart_rx_enable(SP336_USART0);
 
-	/* ToDo */
 }
 
 static void hd3910_disable(void)
 {
-	/* ToDo */
 }
+*/
 
 static RET_ERROR_CODE hd3910_get_data(HD3910_PRIVATE_DATA * const pSelf,HD3910_DATA * const ps)
 {
