@@ -36,7 +36,7 @@ static void anemometer_tip(void)
 {
 	volatile ANEMOMETER_DATA * const ps = &anemometer_stats;
 
-	const uint32_t millis = hal_rtc_get_millis();
+	const uint16_t millis = hal_rtc_get_millis();
 	const uint32_t epoch = hal_rtc_get_time();
 	
 	uint32_t s = 0xFFFF;

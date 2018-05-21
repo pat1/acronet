@@ -21,8 +21,6 @@
 //#include "Acronet/utils/AnyType/AnyType.h"
 
 struct DB_RECORD;
-
-
 typedef AT24CXX_iterator DB_ITERATOR;
 
 

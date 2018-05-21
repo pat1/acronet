@@ -352,9 +352,9 @@ static float l8095n_compute_stats(L8095N_PRIVATE_DATA * const pSelf,const uint8_
 
 static RET_ERROR_CODE l8095n_get_data(L8095N_PRIVATE_DATA * const pSelf,L8095N_DATA * const ps)
 {
-	simple_signal_wait(&(pSelf->sig_data_busy));
-		
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC((pSelf->sig_data_busy));
+	//simple_signal_wait(&(pSelf->sig_data_busy));
+		//
+	//SIGNAL_SET_AND_CLEAR_AUTOMATIC((pSelf->sig_data_busy));
 
 	for(uint8_t ix = L8095N_STAT_BEG;ix<L8095N_STAT_END;++ix)
 	{
@@ -367,9 +367,9 @@ static RET_ERROR_CODE l8095n_get_data(L8095N_PRIVATE_DATA * const pSelf,L8095N_D
 
 static RET_ERROR_CODE l8095n_reset_data(L8095N_PRIVATE_DATA * const pSelf)
 {
-	simple_signal_wait(&(pSelf->sig_data_busy));
-	
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC((pSelf->sig_data_busy));
+	//simple_signal_wait(&(pSelf->sig_data_busy));
+	//
+	//SIGNAL_SET_AND_CLEAR_AUTOMATIC((pSelf->sig_data_busy));
 
 	for(uint8_t ix = L8095N_STAT_BEG;ix<L8095N_STAT_END;++ix)
 	{
@@ -389,9 +389,9 @@ static void L8095N_NMEA_UpdateStats(L8095N_PRIVATE_DATA * const pSelf,const uint
 
 	//static float gust_temp = -9999.0F;
 	
-	simple_signal_wait(&(pSelf->sig_data_busy));
-	
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC((pSelf->sig_data_busy));
+	//simple_signal_wait(&(pSelf->sig_data_busy));
+	//
+	//SIGNAL_SET_AND_CLEAR_AUTOMATIC((pSelf->sig_data_busy));
 	
 	if(op==L8095N_STAT_OPERATOR_MEAN) {
 		

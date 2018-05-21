@@ -21,20 +21,6 @@
 #include "Acronet/channels/MODBUS_RTU/mb_crc.h"
 #include "Acronet/channels/MODBUS_RTU/master_rtu.h"
 
-////////////////////////////////////////////////////////////////////////////////////
-//
-// HD3910 module
-// - modbus connected device
-// each instance of this module requires its own command to be spawned through
-// the periodic function; this command is defined in the HD3910_PER_ISTANCE_CMD
-// that is a BOOST::preprocessor sequence of tuples
-// each tuple is the command, the sequence must contain as many tuples as many
-// instances of the module
-//
-
-#ifndef HD3910_PER_ISTANCE_CMD 
-#error "HD3910 module requires the definition of the HD3910_PER_ISTANCE_CMD variable"
-#endif
 
 #define HD3910_MEASURES_NUMBER	32
 #define HD3910_DATABUFSIZE		17	// Raw measures buffer size. On this measures array statistics are done.
@@ -127,7 +113,7 @@ static uint8_t medianInsert(HD3910_PRIVATE_DATA * const pSelf,const HD3910_PRIVA
 
 static RET_ERROR_CODE hd3910_init(HD3910_PRIVATE_DATA * const pSelf)
 {
-	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"HD3910 Init");
+//	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"HD3910 Init");
 
 	pSelf->g_samples = 0;
 	MBUS_PDU_reset( &pSelf->pdu );

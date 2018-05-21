@@ -10,15 +10,29 @@
  */ 
 
 
+////////////////////////////////////////////////////////////////////////////////////
+//
+// T056 module
+// - modbus connected device
+// each instance of this module requires its own command to be spawned through
+// the periodic function; this command is defined in the T056_PER_ISTANCE_CMD
+// that is a BOOST::preprocessor sequence of tuples
+// each tuple is the command, the sequence must contain as many tuples as many
+// instances of the module
+//
+
+#ifndef T056_PER_ISTANCE_CMD
+#error "T056 module requires the definition of the T056_PER_ISTANCE_CMD variable"
+#endif
+
+
 #include "Acronet/channels/MODBUS_RTU/mb_crc.h"
 #include "Acronet/channels/MODBUS_RTU/master_rtu.h"
 
-
-#define ISTANCE_NUM BOOST_PP_ITERATION()
+#define ISTANCE_NUM BOOST_PP_FRAME_ITERATION(2)
 
 #define MODULE_ISTANCE_CHAN BOOST_PP_SEQ_ELEM(ISTANCE_NUM,MODULE_ISTANCES)
 #define METHOD_NAME_ISTANCE_TRAIL BOOST_PP_CAT(_ist_,ISTANCE_NUM)
-
 
 #define MODULE_PRIVATE_DATA  BOOST_PP_CAT(MODULE_INTERFACE_PRIVATE_DATATYPE,BOOST_PP_CAT(_ist_,ISTANCE_NUM))
 
@@ -71,7 +85,7 @@ void MODULE_METHOD_PERIODIC(void)
 		return;
 	}
 
-	usart_putchar(USART_DEBUG,'p');
+	debug_string_1P(NORMAL,PSTR("T056 ISTANCE "BOOST_PP_STRINGIZE(ISTANCE_NUM)" LOCKS MBUS CHAN "BOOST_PP_STRINGIZE(MODULE_ISTANCE_CHAN)) );
 	uint8_t buf[16];
 	memcpy_P(buf,cmd,8);
 	MBUS_ISSUE_CMD(MODULE_ISTANCE_CHAN,buf,8);
@@ -83,20 +97,12 @@ void MODULE_METHOD_PERIODIC(void)
 #define MODULE_METHOD_NAME BOOST_PP_CAT(MODULE_INTERFACE_INIT,METHOD_NAME_ISTANCE_TRAIL)
 RET_ERROR_CODE MODULE_METHOD_NAME(void)
 {
+	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"T056 INIT ON CHAN "BOOST_PP_STRINGIZE(MODULE_ISTANCE_CHAN) );
+
 	return MODULE_INTERFACE_INIT(&(MODULE_PRIVATE_DATA));
 }
 
 #undef MODULE_METHOD_NAME
-#endif
-
-#ifdef MODULE_INTERFACE_RESET
-#define MODULE_METHOD_NAME BOOST_PP_CAT(MODULE_INTERFACE_RESET,METHOD_NAME_ISTANCE_TRAIL)
-RET_ERROR_CODE MODULE_METHOD_NAME(void)
-{
-	MODULE_PRIVATE_DATA.numSamples = 0;
-	return AC_ERROR_OK;
-}
-#undef MODULE_METHOD_NAME 
 #endif
 
 #ifdef MODULE_INTERFACE_ENABLE
@@ -116,6 +122,16 @@ void MODULE_METHOD_NAME(void)
 
 }
 
+#undef MODULE_METHOD_NAME
+#endif
+
+#ifdef MODULE_INTERFACE_RESET
+#define MODULE_METHOD_NAME BOOST_PP_CAT(MODULE_INTERFACE_RESET,METHOD_NAME_ISTANCE_TRAIL)
+RET_ERROR_CODE MODULE_METHOD_NAME(void)
+{
+	MODULE_PRIVATE_DATA.numSamples = 0;
+	return AC_ERROR_OK;
+}
 #undef MODULE_METHOD_NAME
 #endif
 

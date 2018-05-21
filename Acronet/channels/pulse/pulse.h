@@ -17,10 +17,10 @@
 
 typedef struct {
 	uint32_t firstPulseEpoch;
-	uint32_t firstPulseMillis;
+	uint16_t firstPulseMillis;
 	uint32_t lastPulseEpoch;
-	uint32_t lastPulseMillis;
-	uint32_t minDT;
+	uint16_t lastPulseMillis;
+	uint16_t minDT;
 	uint8_t  numOfPulses;
 } PULSE_CHAN_STATISTICS;
 
@@ -29,7 +29,12 @@ typedef struct {
 
 #define PULSE_IS_EMPTY(ch)		PULSE_PREP( pulse_is_empty_CH , ch )
 #define PULSE_GET_TSTAMP(ch,a1)	PULSE_PREP( pulse_get_tstamp_CH , ch , a1 )
+#define PULSE_INIT(ch)			PULSE_PREP( pulse_init_CH , ch )
 
+void pulse_init_CH0(void);
+void pulse_init_CH1(void);
+void pulse_init_CH2(void);
+void pulse_init_CH3(void);
 
 bool pulse_is_empty_CH0(void);
 bool pulse_is_empty_CH1(void);

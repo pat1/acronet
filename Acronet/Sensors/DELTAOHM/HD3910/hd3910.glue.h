@@ -9,6 +9,21 @@
  * of the EUPL v.1.1 license.  See http://ec.europa.eu/idabc/eupl.html for details.
  */ 
 
+////////////////////////////////////////////////////////////////////////////////////
+//
+// HD3910 module
+// - modbus connected device
+// each instance of this module requires its own command to be spawned through
+// the periodic function; this command is defined in the HD3910_PER_ISTANCE_CMD
+// that is a BOOST::preprocessor sequence of tuples
+// each tuple is the command, the sequence must contain as many tuples as many
+// instances of the module
+//
+
+#ifndef HD3910_PER_ISTANCE_CMD
+#error "HD3910 module requires the definition of the HD3910_PER_ISTANCE_CMD variable"
+#endif
+
 
 #include "Acronet/channels/MODBUS_RTU/mb_crc.h"
 #include "Acronet/channels/MODBUS_RTU/master_rtu.h"
@@ -73,9 +88,22 @@ void MODULE_METHOD_PERIODIC(void)
 
 	static const __flash uint8_t cmd[] = { BOOST_PP_TUPLE_ENUM(MODULE_FLASH_DATA_TUPLE) };
 
-	usart_putchar(USART_DEBUG,'p');
-	uint8_t buf[16];
+	uint8_t buf[32];
+	
+	//{
+		//uint8_t i = 0;
+		//for(;i<8;i++) {
+			//uint8_t v = cmd[i];
+			//sprintf_P(buf, PSTR("%02X "),v);
+			//debug_string(NORMAL,buf,RAM_STRING);
+		//}
+//
+		//debug_string_1P(NORMAL,PSTR("\r\n"));
+	//}
+
+	debug_string_1P(NORMAL,PSTR("HD3910 ISTANCE "BOOST_PP_STRINGIZE(ISTANCE_NUM)" LOCKS MBUS CHAN "BOOST_PP_STRINGIZE(MODULE_ISTANCE_CHAN)) );
 	memcpy_P(buf,cmd,8);
+	
 	MBUS_ISSUE_CMD(MODULE_ISTANCE_CHAN,buf,8);
 }
 
@@ -88,6 +116,7 @@ void MODULE_METHOD_PERIODIC(void)
 #define MODULE_METHOD_NAME BOOST_PP_CAT(MODULE_INTERFACE_INIT,METHOD_NAME_ISTANCE_TRAIL)
 RET_ERROR_CODE MODULE_METHOD_NAME(void)
 {
+	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"HD3910 INIT ON CHAN "BOOST_PP_STRINGIZE(MODULE_ISTANCE_CHAN) );
 	return MODULE_INTERFACE_INIT(&(MODULE_PRIVATE_DATA));
 }
 

@@ -22,20 +22,6 @@
 #include "Acronet/channels/MODBUS_RTU/master_rtu.h"
 
 
-////////////////////////////////////////////////////////////////////////////////////
-//
-// T023 module
-// - modbus connected device
-// each instance of this module requires its own command to be spawned through
-// the periodic function; this command is defined in the HD3910_PER_ISTANCE_CMD
-// that is a BOOST::preprocessor sequence of tuples
-// each tuple is the command, the sequence must contain as many tuples as many
-// instances of the module
-//
-
-#ifndef T023_PER_ISTANCE_CMD
-#error "T023 module requires the definition of the T023_PER_ISTANCE_CMD variable"
-#endif
 
 
 #define T023_MEASURES_NUMBER	32

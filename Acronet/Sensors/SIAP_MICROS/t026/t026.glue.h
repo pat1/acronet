@@ -10,6 +10,22 @@
  */ 
 
 
+////////////////////////////////////////////////////////////////////////////////////
+//
+// T026 module
+// - modbus connected device
+// each instance of this module requires its own command to be spawned through
+// the periodic function; this command is defined in the T056_PER_ISTANCE_CMD
+// that is a BOOST::preprocessor sequence of tuples
+// each tuple is the command, the sequence must contain as many tuples as many
+// instances of the module
+//
+
+#ifndef T026_PER_ISTANCE_CMD
+#error "T026 module requires the definition of the T026_PER_ISTANCE_CMD variable"
+#endif
+
+
 #include "Acronet/channels/MODBUS_RTU/mb_crc.h"
 #include "Acronet/channels/MODBUS_RTU/master_rtu.h"
 
@@ -22,11 +38,14 @@
 
 static MODULE_INTERFACE_PRIVATE_DATATYPE MODULE_PRIVATE_DATA;
 
+#define MODULE_FLASH_DATA_TUPLE BOOST_PP_SEQ_ELEM(ISTANCE_NUM,T026_PER_ISTANCE_CMD)
+#define MODULE_MODBUS_ADDRESS BOOST_PP_TUPLE_ELEM(0,MODULE_FLASH_DATA_TUPLE)
+
 #ifdef MODULE_INTERFACE_YIELD
 #define MODULE_METHOD_YIELD BOOST_PP_CAT(MODULE_INTERFACE_YIELD,METHOD_NAME_ISTANCE_TRAIL)
 bool  MODULE_METHOD_YIELD( void )
 {
-	while( MBUS_IS_RIPE(MODULE_ISTANCE_CHAN) )
+	while( MBUS_IS_RIPE(MODULE_ISTANCE_CHAN,MODULE_MODBUS_ADDRESS) )
 	{
 		const uint8_t b = MBUS_GET_BYTE(MODULE_ISTANCE_CHAN);
 		if ( MBUS_STATUS_END == MBUS_BUILD_DGRAM(MODULE_ISTANCE_CHAN, &(MODULE_PRIVATE_DATA.pdu), b) )
@@ -55,19 +74,18 @@ bool  MODULE_METHOD_YIELD( void )
 #undef MODULE_METHOD_YIELD
 #endif
 
-
 #ifdef MODULE_INTERFACE_PERIODIC
 #define MODULE_METHOD_NAME BOOST_PP_CAT(MODULE_INTERFACE_PERIODIC,METHOD_NAME_ISTANCE_TRAIL)
 void MODULE_METHOD_NAME(void)
 {
-	static const __flash uint8_t cmd[] = {0x15,0x04,0x00,0x00,0x00,0x04,0xF2,0xDD};
+	static const __flash uint8_t cmd[] = { BOOST_PP_TUPLE_ENUM(MODULE_FLASH_DATA_TUPLE) };
 
 	if ( AC_ERROR_OK != MBUS_LOCK(MODULE_ISTANCE_CHAN) )
 	{
 		return;
 	}
 
-	usart_putchar(USART_DEBUG,'p');
+	debug_string_1P(NORMAL,PSTR("T026 ISTANCE "BOOST_PP_STRINGIZE(ISTANCE_NUM)" LOCKS MBUS CHAN "BOOST_PP_STRINGIZE(MODULE_ISTANCE_CHAN)) );
 	uint8_t buf[16];
 	memcpy_P(buf,cmd,8);
 	MBUS_ISSUE_CMD(MODULE_ISTANCE_CHAN,buf,8);
@@ -79,19 +97,31 @@ void MODULE_METHOD_NAME(void)
 #define MODULE_METHOD_NAME BOOST_PP_CAT(MODULE_INTERFACE_INIT,METHOD_NAME_ISTANCE_TRAIL)
 RET_ERROR_CODE MODULE_METHOD_NAME(void)
 {
+	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"T026 INIT ON CHAN "BOOST_PP_STRINGIZE(MODULE_ISTANCE_CHAN) );
+
 	return MODULE_INTERFACE_INIT(&(MODULE_PRIVATE_DATA));
 }
 
 #undef MODULE_METHOD_NAME
 #endif
 
-
-#ifdef MODULE_INTERFACE_GETDATA
-#define MODULE_METHOD_NAME BOOST_PP_CAT(MODULE_INTERFACE_GETDATA,METHOD_NAME_ISTANCE_TRAIL)
-RET_ERROR_CODE  MODULE_METHOD_NAME(MODULE_PUBLIC_DATATYPE * const pData)
+#ifdef MODULE_INTERFACE_ENABLE
+#define MODULE_METHOD_NAME BOOST_PP_CAT(MODULE_INTERFACE_ENABLE,METHOD_NAME_ISTANCE_TRAIL)
+void MODULE_METHOD_NAME(void)
 {
-	return MODULE_INTERFACE_GETDATA(&(MODULE_PRIVATE_DATA),pData);
+
 }
+
+#undef MODULE_METHOD_NAME
+#endif
+
+#ifdef MODULE_INTERFACE_DISABLE
+#define MODULE_METHOD_NAME BOOST_PP_CAT(MODULE_INTERFACE_DISABLE,METHOD_NAME_ISTANCE_TRAIL)
+void MODULE_METHOD_NAME(void)
+{
+
+}
+
 #undef MODULE_METHOD_NAME
 #endif
 

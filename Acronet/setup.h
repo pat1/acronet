@@ -54,6 +54,8 @@
 #include "Acronet/utils/station_setup/monesi.h"
 #elif defined(STATION_SETUP_REACH)
 #include "Acronet/utils/station_setup/reach.h"
+#elif defined(STATION_SETUP_ZEUS)
+#include "Acronet/utils/station_setup/zeus.h"
 
 #else 
 #pragma message "No configuration defined, using defaults"

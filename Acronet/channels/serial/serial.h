@@ -15,15 +15,15 @@
 
 
 
-#define NMEA_PREP(p1,p2,...)			p1##p2(__VA_ARGS__)
+#define SERCHAN_PREP(p1,p2,...)			p1##p2(__VA_ARGS__)
 
-#define SERCHAN_ENABLE_RX(ch)					NMEA_PREP( serchan_enable_RX_CH , ch )
-#define SERCHAN_DISABLE_RX(ch)				NMEA_PREP( serchan_disable_RX_CH , ch )
-#define SERCHAN_ENABLE_TX(ch)					NMEA_PREP( serchan_enable_TX_CH , ch )
-#define SERCHAN_DISABLE_TX(ch)				NMEA_PREP( serchan_disable_TX_CH , ch )
-#define SERCHAN_RESET(ch)						NMEA_PREP( serchan_reset_CH , ch )
-#define SERCHAN_GETCHAR(ch)					NMEA_PREP( serchan_getChar_CH	, ch )
-#define SERCHAN_PUTSTRING(ch,psz)				NMEA_PREP( serchan_putStr_CH , ch )
+#define SERCHAN_ENABLE_RX(ch)				SERCHAN_PREP( serchan_enable_RX_CH , ch )
+#define SERCHAN_DISABLE_RX(ch)				SERCHAN_PREP( serchan_disable_RX_CH , ch )
+#define SERCHAN_ENABLE_TX(ch)				SERCHAN_PREP( serchan_enable_TX_CH , ch )
+#define SERCHAN_DISABLE_TX(ch)				SERCHAN_PREP( serchan_disable_TX_CH , ch )
+#define SERCHAN_RESET(ch)					SERCHAN_PREP( serchan_reset_CH , ch )
+#define SERCHAN_GETCHAR(ch)					SERCHAN_PREP( serchan_getChar_CH	, ch )
+#define SERCHAN_PUTSTRING(ch,psz)			SERCHAN_PREP( serchan_putStr_CH , ch )
 
 
 void serchan_enable_RX_CH0(void);

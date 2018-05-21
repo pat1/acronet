@@ -123,11 +123,11 @@ static uint8_t hex_reader_trim_to_record(char * const pStatus)
 
 uint8_t __attribute__((const)) ascii_hex(const uint8_t c)
 {
-	if((c>47) && (c<58)) { // 0 to 9
+	if((c<58) && (c>47)) { // 0 to 9
 		return (c-48);
-	} else if((c>64) && (c<71)) { // A to F
+	} else if((c<71) && (c>64)) { // A to F
 		return (c-55);
-	} else if((c>96) && (c<103)) { // a to f
+	} else if((c<103) && (c>96)) { // a to f
 		return (c-87);
 	}
 	
@@ -135,6 +135,7 @@ uint8_t __attribute__((const)) ascii_hex(const uint8_t c)
 	
 	return 0xFF;
 }
+
 
 static uint8_t hex_reader_decode_byte(uint8_t * val, char * const pStatus)
 {

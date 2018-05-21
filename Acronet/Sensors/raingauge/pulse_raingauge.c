@@ -21,24 +21,24 @@
 #include "Acronet/services/config/config.h"
 #include "Acronet/channels/pulse/pulse.h"
 
-typedef struct
+
+
+static void raingauge_tip(RAINGAUGE_DATA * const pSelf,const PULSE_CHAN_STATISTICS * const pStat )
 {
-	RAINGAUGE_DATA raingauge_stats;
-	uint32_t lastTipEpoch;
-	uint32_t lastTipMillis;
-} RAINGAUGE_PRIVATE_DATA;
-
-
-
-static void raingauge_tip(RAINGAUGE_PRIVATE_DATA * const pSelf,const PULSE_CHAN_STATISTICS * const pStat )
-{
-	pSelf->raingauge_stats.tips += pStat->numOfPulses;
-	pSelf->lastTipMillis = pStat->lastPulseMillis;
-	pSelf->lastTipEpoch = pStat->lastPulseEpoch;
-	const uint32_t s = pStat->minDT;
-	if( (0 == (s & 0xFFFF0000)) && ( s < pSelf->raingauge_stats.maxSlope )) {
-		pSelf->raingauge_stats.maxSlope = s;
+	pSelf->tips += pStat->numOfPulses;
+	const uint16_t s = pStat->minDT;
+	if( s < pSelf->maxSlope ) {
+		pSelf->maxSlope = s;
 	}
+	
+	char buf[64];
+	unsigned int a = pStat->numOfPulses ,b = pStat->minDT ,c = pSelf->tips ,d = pSelf->maxSlope;
+	sprintf_P(buf,PSTR("%u %u - %u %u\r\n") ,a
+											,b
+											,c
+											,d);
+	debug_string(NORMAL,buf,RAM_STRING);
+
 }
 
 #ifdef RMAP_SERVICES
@@ -134,7 +134,7 @@ RET_ERROR_CODE raingauge_Data2String(const RAINGAUGE_DATA * const st,char * cons
 	return internal_Data2String(st,sz, len_sz);
 }
 
-#define MODULE_INTERFACE_PRIVATE_DATATYPE RAINGAUGE_PRIVATE_DATA
+#define MODULE_INTERFACE_PRIVATE_DATATYPE RAINGAUGE_DATA
 
 
 #define MODINST_PARAM_ID MOD_ID_RAINGAUGE

@@ -17,6 +17,6 @@ void hal_rtc_set_alarm(const uint32_t to);
 void hal_rtc_set_alarm_relative(const uint32_t to);
 
 uint32_t hal_rtc_get_time(void);
-uint32_t hal_rtc_get_millis(void);
+uint16_t hal_rtc_get_millis(void);
 
 #endif /* HAL_RTC_IFACE_H_ */

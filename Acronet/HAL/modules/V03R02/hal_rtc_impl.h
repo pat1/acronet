@@ -31,7 +31,7 @@ uint32_t hal_rtc_get_time(void)
 
 }
 
-uint32_t hal_rtc_get_millis(void)
+uint16_t hal_rtc_get_millis(void)
 {
 	while (rtc_is_busy());
 	return RTC_CNT;

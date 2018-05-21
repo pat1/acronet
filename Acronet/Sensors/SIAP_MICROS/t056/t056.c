@@ -22,21 +22,6 @@
 #include "Acronet/channels/MODBUS_RTU/master_rtu.h"
 
 
-////////////////////////////////////////////////////////////////////////////////////
-//
-// T056 module
-// - modbus connected device
-// each instance of this module requires its own command to be spawned through
-// the periodic function; this command is defined in the T056_PER_ISTANCE_CMD
-// that is a BOOST::preprocessor sequence of tuples
-// each tuple is the command, the sequence must contain as many tuples as many
-// instances of the module
-//
-
-#ifndef T056_PER_ISTANCE_CMD
-#error "T056 module requires the definition of the T056_PER_ISTANCE_CMD variable"
-#endif
-
 
 //#define T056_MEASURES_NUMBER	32
 #define T056_DATABUFSIZE		17	// Raw measures buffer size. On this measures array statistics are done.
@@ -126,9 +111,8 @@ static uint8_t medianInsert(T056_PRIVATE_DATA * const pSelf,const T056_SAMPLE va
 
 
 
-RET_ERROR_CODE t056_init(T056_PRIVATE_DATA * const pSelf)
+static RET_ERROR_CODE t056_init(T056_PRIVATE_DATA * const pSelf)
 {
-	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"T056 Init");
 
 	
 //	pSelf->g_DataIsBusy = 0;
@@ -139,20 +123,22 @@ RET_ERROR_CODE t056_init(T056_PRIVATE_DATA * const pSelf)
 	return AC_ERROR_OK;
 }
 
+/*
 void t056_enable(void)
 {
 	//usart_set_rx_interrupt_level(SP336_USART0,USART_INT_LVL_LO);
 	//usart_rx_enable(SP336_USART0);
 
-	/* ToDo */
+	
 }
 
 void t056_disable(void)
 {
-	/* ToDo */
+	
 }
+*/
 
-RET_ERROR_CODE t056_get_data(T056_PRIVATE_DATA * const pSelf,T056_DATA * const ps)
+static RET_ERROR_CODE t056_get_data(T056_PRIVATE_DATA * const pSelf,T056_DATA * const ps)
 {
 	ps->levl = pSelf->sample[T056_MEASUREBUFMID].levl;
 //	ps->temp = g_Data[T056_MEASUREBUFMID].temp;

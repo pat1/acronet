@@ -112,17 +112,18 @@ static uint8_t medianInsert(T026_PRIVATE_DATA * const pSelf, const T026_SAMPLE v
 }
 
 
-/*
-RET_ERROR_CODE t026_init( T026_PRIVATE_DATA * const pSelf )
+
+static RET_ERROR_CODE t026_init( T026_PRIVATE_DATA * const pSelf )
 {
-	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"T026 Init");
+//	DEBUG_PRINT_FUNCTION_NAME(NORMAL,"T026 Init");
 	
 	pSelf->numSamples = 0;
 	MBUS_PDU_reset(&(pSelf->pdu));
 
 	return AC_ERROR_OK;
 }
-*/
+
+
 /*
 void t026_enable(void)
 {

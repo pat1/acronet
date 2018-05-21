@@ -47,10 +47,6 @@ void hal_board_init(void)
 	//Configure the GPRS Status sense PIN
 	ioport_configure_pin(GPRS_STATUS, IOPORT_DIR_INPUT);
 
-	//Configure the Raingauge Switch PINs
-	ioport_configure_pin(RAINGAUGE1_SWITCH, IOPORT_DIR_INPUT | IOPORT_TOTEM | IOPORT_RISING );
-	ioport_configure_pin(RAINGAUGE2_SWITCH, IOPORT_DIR_INPUT | IOPORT_TOTEM | IOPORT_RISING );
-
 	//Configure the USB VBus sensing PIN
 	//	ioport_configure_pin(USB_PROBE_PIN, IOPORT_DIR_INPUT | IOPORT_TOTEM | IOPORT_BOTHEDGES | IOPORT_SRL_ENABLED );
 

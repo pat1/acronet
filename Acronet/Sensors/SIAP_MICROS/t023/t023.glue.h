@@ -10,6 +10,22 @@
  */ 
 
 
+////////////////////////////////////////////////////////////////////////////////////
+//
+// T023 module
+// - modbus connected device
+// each instance of this module requires its own command to be spawned through
+// the periodic function; this command is defined in the HD3910_PER_ISTANCE_CMD
+// that is a BOOST::preprocessor sequence of tuples
+// each tuple is the command, the sequence must contain as many tuples as many
+// instances of the module
+//
+
+#ifndef T023_PER_ISTANCE_CMD
+#error "T023 module requires the definition of the T023_PER_ISTANCE_CMD variable"
+#endif
+
+
 #include "Acronet/channels/MODBUS_RTU/mb_crc.h"
 #include "Acronet/channels/MODBUS_RTU/master_rtu.h"
 
@@ -22,7 +38,7 @@
 
 static MODULE_INTERFACE_PRIVATE_DATATYPE MODULE_PRIVATE_DATA;
 
-#define MODULE_FLASH_DATA_TUPLE BOOST_PP_SEQ_ELEM(ISTANCE_NUM,HD3910_PER_ISTANCE_CMD)
+#define MODULE_FLASH_DATA_TUPLE BOOST_PP_SEQ_ELEM(ISTANCE_NUM,T023_PER_ISTANCE_CMD)
 #define MODULE_MODBUS_ADDRESS BOOST_PP_TUPLE_ELEM(0,MODULE_FLASH_DATA_TUPLE)
 
 
@@ -71,7 +87,7 @@ void MODULE_METHOD_NAME(void)
 		return;
 	}
 
-	usart_putchar(USART_DEBUG,'p');
+	debug_string_1P(NORMAL,PSTR("T023 ISTANCE "BOOST_PP_STRINGIZE(ISTANCE_NUM)" LOCKS MBUS CHAN "BOOST_PP_STRINGIZE(MODULE_ISTANCE_CHAN)) );
 	uint8_t buf[16];
 	memcpy_P(buf,cmd,8);
 	MBUS_ISSUE_CMD(MODULE_ISTANCE_CHAN,buf,8);

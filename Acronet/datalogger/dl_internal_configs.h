@@ -12,6 +12,19 @@
 //
 //
 
+#include "boost/preprocessor.hpp"
+#include "modinst/modconf.h"
+
+///////////////////////////////////////////////////////////////////////////////
+//Computes the module DB record type, it also include the module header file
+//
+#include "Acronet/services/DB/DBRecord.h"
+
+
+static void dl_reset_data(void);
+static void dl_get_data(DB_RECORD * const);
+static RET_ERROR_CODE dl_Data2String(  const DB_RECORD * const,char * const,int16_t * );
+
 
 /* Module interface */
 typedef RET_ERROR_CODE ( * INITMODULE    )(void);
@@ -19,8 +32,8 @@ typedef void           ( * ENABLEMODULE  )(void);
 typedef void           ( * DISABLEMODULE )(void);
 typedef bool           ( * YIELDMODULE   )(void);
 typedef void           ( * RESETDATA     )(void);
-typedef void           ( * GETDATA       )(void * const st);
-typedef RET_ERROR_CODE ( * DATA2STRING   )(  const void * const st
+typedef void           ( * GETDATA       )(DB_RECORD * const st);
+typedef RET_ERROR_CODE ( * DATA2STRING   )(  const DB_RECORD * const st
 											,char * const sz
 											,int16_t * len_sz       );
 
@@ -52,36 +65,13 @@ typedef struct {
 #endif
 }  MODULE_INTERFACE;
 
-#include "boost/preprocessor.hpp"
-#include "modinst/modconf.h"
+
+
 #include "modinst/modinst_impl.h"
 
 
-	
-
-/*
-RET_ERROR_CODE DB_select(const struct DB_RECORD * const pRecord,const uint8_t fieldID, DB_FIELD * const pField)
-{
-	
-	
-	return AC_ERROR_OK;
-}
-*/
-
-/*******************************************************************/
-//	ADC Configuration table
-/*******************************************************************/
-
-#include "Acronet/drivers/ADC/ADC_Manager.h"
 
 
-const __flash ADC_MAN_SETUP g_tbl_ADC_MAN_SETUP[] = {
-	
-	{ 'A',0,0,0,0,NULL,NULL,"demo1" },
-	{ 'B',0,0,0,0,0,"demo2" },
-	{ 'A',0,0,0,0,0,"demo3" }
-	
-};
 
 
 /*******************************************************************/
@@ -98,51 +88,6 @@ const __flash CAP_INTROSPECTION g_cap_introspection[4] = {
 #endif
 
 
-static void dl_periodic_update( void )
-{
-	typedef void  ( * PERIODICFN  )(void);
-	
-	static void (* const __flash fnPeriodic[])(void) = {
-									#ifdef SETUP_VP61
-										vp61_periodic,
-									#endif
-									#ifdef SETUP_T023_MODBUS
-										t023_periodic,
-									#endif
-									#ifdef SETUP_T026_MODBUS
-										t026_periodic,
-									#endif
-									#ifdef SETUP_T056_MODBUS
-										t056_periodic,
-									#endif
-									#ifdef SETUP_HD3910_MODBUS
-										hd3910_periodic,
-									#endif
-									#ifdef SETUP_GPIO2LOG
-										gpio2log_periodic,
-									#endif
-									};
-
-	static const __flash uint8_t tableSize = sizeof(fnPeriodic) / sizeof(PERIODICFN);
-									
-	static uint8_t idx = 0;
-	
-	for (uint8_t i=idx;i<tableSize;i++)
-	{
-		fnPeriodic[i]();
-	}
-										
-	for (uint8_t i=0;i<idx;i++)
-	{
-		fnPeriodic[i]();
-	}
-
-	if ( ++idx >= tableSize )
-	{
-		idx = 0;
-	}
-										
-}
 
 
 #endif /* DL_INTERNAL_CONFIGS_H_ */

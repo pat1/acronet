@@ -177,7 +177,7 @@ void hal_rtc_set_alarm(uint32_t time)
 	//g_alarm = time;
 }
 
-uint32_t hal_rtc_get_millis(void)
+uint16_t hal_rtc_get_millis(void)
 {
 	RTC32.SYNCCTRL = RTC32_SYNCCNT_bm;
 	while (RTC32.SYNCCTRL & RTC32_SYNCCNT_bm);

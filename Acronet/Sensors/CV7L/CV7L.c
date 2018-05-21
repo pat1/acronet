@@ -197,10 +197,10 @@ static float CV7L_compute_stats(CV7L_PRIVATE_DATA * const pSelf,const uint8_t id
 
 static RET_ERROR_CODE CV7L_get_data(CV7L_PRIVATE_DATA * const pSelf,CV7L_DATA * const ps)
 {
-	irqflags_t flags = cpu_irq_save();
-	simple_signal_wait(&(pSelf->sig_data_busy));
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC((pSelf->sig_data_busy));
-	cpu_irq_restore(flags);
+	//irqflags_t flags = cpu_irq_save();
+	//simple_signal_wait(&(pSelf->sig_data_busy));
+	//SIGNAL_SET_AND_CLEAR_AUTOMATIC((pSelf->sig_data_busy));
+	//cpu_irq_restore(flags);
 
 	for(uint8_t ix = CV7L_STAT_BEG;ix<CV7L_STAT_END;++ix)
 	{
@@ -213,10 +213,10 @@ static RET_ERROR_CODE CV7L_get_data(CV7L_PRIVATE_DATA * const pSelf,CV7L_DATA * 
 
 static RET_ERROR_CODE CV7L_reset_data(CV7L_PRIVATE_DATA * const pSelf)
 {
-	irqflags_t flags = cpu_irq_save();
-	simple_signal_wait(&(pSelf->sig_data_busy));
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC(pSelf->sig_data_busy);
-	cpu_irq_restore(flags);
+	//irqflags_t flags = cpu_irq_save();
+	//simple_signal_wait(&(pSelf->sig_data_busy));
+	//SIGNAL_SET_AND_CLEAR_AUTOMATIC(pSelf->sig_data_busy);
+	//cpu_irq_restore(flags);
 
 	for(uint8_t ix = CV7L_STAT_BEG;ix<CV7L_STAT_END;++ix)
 	{
@@ -240,10 +240,10 @@ static void CV7L_NMEA_UpdateStats(CV7L_PRIVATE_DATA * const pSelf,const uint8_t 
 	
 	//static float gust_temp = -9999.0F;
 
-	irqflags_t flags = cpu_irq_save();
-	simple_signal_wait(&(pSelf->sig_data_busy));
-	SIGNAL_SET_AND_CLEAR_AUTOMATIC(pSelf->sig_data_busy);
-	cpu_irq_restore(flags);
+	//irqflags_t flags = cpu_irq_save();
+	//simple_signal_wait(&(pSelf->sig_data_busy));
+	//SIGNAL_SET_AND_CLEAR_AUTOMATIC(pSelf->sig_data_busy);
+	//cpu_irq_restore(flags);
 
 	
 	if(op==CV7L_STAT_OPERATOR_MEAN) {

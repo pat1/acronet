@@ -14,7 +14,7 @@
 #define MODULE_INTERFACE_INIT raingauge_init
 #define MODULE_INTERFACE_RESET raingauge_reset_data
 #define MODULE_INTERFACE_GETDATA raingauge_get_data
-#define MODULE_INTERFACE_YIELD raingauge_yield
+//#define MODULE_INTERFACE_YIELD raingauge_yield
 #define MODULE_INTERFACE_DATA2STRING raingauge_Data2String
 #if defined(RMAP_SERVICES)
 #define MODULE_INTERFACE_DATA2STRING_RMAP raingauge_Data2String_RMAP

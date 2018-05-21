@@ -65,6 +65,7 @@ typedef struct DL_SEND_PARAMS{
 } DL_SEND_PARAMS;
 
 
+
 static RET_ERROR_CODE dl_MQTTconnData_init(char * const heap,uint16_t lenHeap);
 static RET_ERROR_CODE dl_MQTT_tcp_open(uint16_t * const TCPBufLen);
 static RET_ERROR_CODE dl_MQTT_data_transfer_prepare(void);
@@ -116,6 +117,7 @@ static void dl_enable(void)
 }
 
 #include "dl_internal_configs.h"
+
 
 #ifdef RMAP_SERVICES
 
@@ -191,9 +193,9 @@ typedef struct DL_TIMINGS {
 static DL_TIMINGS g_timing;
 
 //Datalogger timer interval is set as 5 seconds
-static uint32_t  g_timespan = 5;
+static uint32_t g_timespan = 5;
 
-static volatile uint32_t g_timePrev = DL_T0;
+static uint32_t g_timePrev = DL_T0;
 
 //static RET_ERROR_CODE send_data_with_get(DL_SEND_PARAMS * const pPara);
 static RET_ERROR_CODE send_data_with_post(DL_SEND_PARAMS * const pPara);
@@ -495,7 +497,7 @@ RET_ERROR_CODE dl_init( void )
 // Configure the ADC Manager
 /*********************************************************************************/
 
-	ADC_MAN_Init(g_tbl_ADC_MAN_SETUP,sizeof(g_tbl_ADC_MAN_SETUP)/sizeof(g_tbl_ADC_MAN_SETUP[0]));
+	//ADC_MAN_Init(g_tbl_ADC_MAN_SETUP,sizeof(g_tbl_ADC_MAN_SETUP)/sizeof(g_tbl_ADC_MAN_SETUP[0]));
 
 /*********************************************************************************/
 // Configure Introspection for CAP
