@@ -54,7 +54,7 @@ bool USART_RX_CBuffer_Complete(USART_data_t * usart_data)
 		if((data>31) && (data<127)) {
 			usart_putchar(USART_DEBUG, data);
 		} else {
-			static const char __flash decoder[] = "0123456789ABCDEF ";
+			static const __flash char decoder[] = "0123456789ABCDEF ";
 			usart_putchar(USART_DEBUG, '[');
 			const uint8_t u = (data & 0x0F);
 			const uint8_t d = (data >> 8);

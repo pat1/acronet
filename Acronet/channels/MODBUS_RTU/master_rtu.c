@@ -264,14 +264,6 @@ static void cb_usartx(const uint8_t n,const uint8_t c)
 
 static uint8_t MBUS_build_dgram(MBUS_CONTROL * const pControl,MBUS_PDU * const pPDU,const uint8_t b)
 {
-	const uint8_t status = pControl->status;
-	
-	//if (MBUS_STATUS_BEGIN == status)
-	//{
-		//pPDU->data.bc = 0;
-		//mb_crc_reset(pControl->transmission_crc);
-		//pControl->status = MBUS_STATUS_ADDR;
-	//}
 	
 //	char szBUF[256];
 
@@ -367,13 +359,13 @@ RET_ERROR_CODE MBUS_lock_CH0(void)
 		if( (max(g_bc0.seconds,sec) - min(g_bc0.seconds,sec)) > 2 ) {
 			debug_string_1P(NORMAL,PSTR("MBUS CH0 TIMEOUT"));
 			reset_usartx_buffer(MODBUS_CHAN_0_IDX);
-			usart_tx_enable(MODBUS_CHAN_0_USART);
-			usart_rx_enable(MODBUS_CHAN_0_USART);
+			//usart_tx_enable(MODBUS_CHAN_0_USART);
+			//usart_rx_enable(MODBUS_CHAN_0_USART);
 			g_bc0.status = MBUS_STATUS_ADDR;
 			g_bc0.seconds = sec;
 			return AC_ERROR_OK;
 		}
-		debug_string_1P(NORMAL,PSTR("MBUS CH0 BUSY"));
+		//debug_string_1P(NORMAL,PSTR("MBUS CH0 BUSY"));
 		return AC_ERROR_GENERIC;
 	}
 	
@@ -402,7 +394,7 @@ uint16_t MBUS_get_crc_CH0(void)
 
 ISR(MODBUS_CHAN_0_ISR)
 {
-	usart_putchar(USART_DEBUG,'0');
+	//usart_putchar(USART_DEBUG,'0');
 	cb_usartx(MODBUS_CHAN_0_IDX,MODBUS_CHAN_0_USART.DATA);
 }
 #endif
@@ -442,13 +434,13 @@ RET_ERROR_CODE MBUS_lock_CH1(void)
 		if( (max(g_bc1.seconds,sec) - min(g_bc1.seconds,sec)) > 2 ) {
 			debug_string_1P(NORMAL,PSTR("MBUS CH1 TIMEOUT"));
 			reset_usartx_buffer(MODBUS_CHAN_1_IDX);
-			usart_tx_enable(&MODBUS_CHAN_1_USART);
-			usart_rx_enable(&MODBUS_CHAN_1_USART);
+			//usart_tx_enable(&MODBUS_CHAN_1_USART);
+			//usart_rx_enable(&MODBUS_CHAN_1_USART);
 			g_bc1.status = MBUS_STATUS_ADDR;
 			g_bc1.seconds = sec;
 			return AC_ERROR_OK;
 		}
-		debug_string_1P(NORMAL,PSTR("MBUS CH1 BUSY"));
+		//debug_string_1P(NORMAL,PSTR("MBUS CH1 BUSY"));
 		return AC_ERROR_GENERIC;
 	}
 	
@@ -478,7 +470,7 @@ uint16_t MBUS_get_crc_CH1(void)
 
 ISR(MODBUS_CHAN_1_ISR)
 {
-	usart_putchar(USART_DEBUG,'1');
+	//usart_putchar(USART_DEBUG,'1');
 	cb_usartx(MODBUS_CHAN_1_IDX,MODBUS_CHAN_1_USART.DATA);
 }
 #endif
@@ -516,17 +508,17 @@ RET_ERROR_CODE MBUS_lock_CH2(void)
 		if( (max(g_bc2.seconds,sec) - min(g_bc2.seconds,sec)) > 2 ) {
 			debug_string_1P(NORMAL,PSTR("MBUS CH2 TIMEOUT"));
 			reset_usartx_buffer(MODBUS_CHAN_2_IDX);
-			usart_tx_enable(&MODBUS_CHAN_2_USART);
-			usart_rx_enable(&MODBUS_CHAN_2_USART);
+			//usart_tx_enable(&MODBUS_CHAN_2_USART);
+			//usart_rx_enable(&MODBUS_CHAN_2_USART);
 			g_bc2.status = MBUS_STATUS_ADDR;
 			g_bc2.seconds = sec;
 			return AC_ERROR_OK;
 		}
-		debug_string_1P(NORMAL,PSTR("MBUS CH2 BUSY"));
+		//debug_string_1P(NORMAL,PSTR("MBUS CH2 BUSY"));
 		return AC_ERROR_GENERIC;
 	}
 	
-	debug_string_1P(NORMAL,PSTR("MBUS CH2 LOCK"));
+	//debug_string_1P(NORMAL,PSTR("MBUS CH2 LOCK"));
 	g_bc2.status = MBUS_STATUS_ADDR;
 	g_bc2.seconds = sec;
 	return AC_ERROR_OK;
@@ -552,7 +544,7 @@ uint16_t MBUS_get_crc_CH2(void)
 
 ISR(MODBUS_CHAN_2_ISR)
 {
-	usart_putchar(USART_DEBUG,'2');
+	//usart_putchar(USART_DEBUG,'2');
 	cb_usartx(MODBUS_CHAN_2_IDX,MODBUS_CHAN_2_USART.DATA);
 }
 #endif
@@ -593,17 +585,17 @@ RET_ERROR_CODE MBUS_lock_CH3(void)
 		if( (max(g_bc3.seconds,sec) - min(g_bc3.seconds,sec)) > 2 ) {
 			debug_string_1P(NORMAL,PSTR("MBUS CH3 TIMEOUT"));
 			reset_usartx_buffer(MODBUS_CHAN_3_IDX);
-			usart_tx_enable(&MODBUS_CHAN_3_USART);
-			usart_rx_enable(&MODBUS_CHAN_3_USART);
+			//usart_tx_enable(&MODBUS_CHAN_3_USART);
+			//usart_rx_enable(&MODBUS_CHAN_3_USART);
 			g_bc3.status = MBUS_STATUS_ADDR;
 			g_bc3.seconds = sec;
 			return AC_ERROR_OK;
 		}
-		debug_string_1P(NORMAL,PSTR("MBUS CH3 BUSY"));
+		//debug_string_1P(NORMAL,PSTR("MBUS CH3 BUSY"));
 		return AC_ERROR_GENERIC;
 	}
 	
-	debug_string_1P(NORMAL,PSTR("MBUS CH3 LOCK"));
+	//debug_string_1P(NORMAL,PSTR("MBUS CH3 LOCK"));
 	g_bc3.status = MBUS_STATUS_ADDR;
 	g_bc3.seconds = sec;
 	return AC_ERROR_OK;
@@ -629,7 +621,7 @@ uint16_t MBUS_get_crc_CH3(void)
 
 ISR(MODBUS_CHAN_3_ISR)
 {
-	usart_putchar(USART_DEBUG,'3');
+	//usart_putchar(USART_DEBUG,'3');
 	cb_usartx(MODBUS_CHAN_3_IDX,MODBUS_CHAN_3_USART.DATA);
 }
 #endif

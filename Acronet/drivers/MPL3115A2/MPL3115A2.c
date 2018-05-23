@@ -29,7 +29,7 @@
 
 static RET_ERROR_CODE MPL3115A2_internalWrite(twi_package_t * ppak)
 {
-	static const char __flash funName[] = "MPL3115A2_internalWrite";
+	static const __flash char funName[] = "MPL3115A2_internalWrite";
 	
 	//debug_string("Before write\r\n");
 	const status_code_t r = twi_master_write(MPL3115A2_TWI_PORT, ppak);

@@ -29,12 +29,6 @@
 #include "Acronet/drivers/StatusLED/status_led.h"
 #include "Acronet/drivers/UART_INT/cbuffer_usart.h"
 
-//static volatile	uint8_t g_spin_flags = 0;
-
-//static volatile	uint8_t g_spin_0 = 0;
-//static volatile	uint8_t g_spin_1 = 0;
-//static volatile	uint8_t g_spin_2 = 0;
-//static volatile	uint8_t g_spin_3 = 0;
 
 RET_ERROR_CODE SP336_Init( void )
 {
@@ -92,50 +86,6 @@ RET_ERROR_CODE SP336_Config(USART_t * const pUsart,const usart_rs232_options_t *
 	return AC_ERROR_OK;
 }
 
-/*
-RET_ERROR_CODE SP336_PutString(USART_t * const pUsart, const char * const sz)
-{
-
-	RET_ERROR_CODE ret = 1;
-	const uint8_t en = (&SP336_USART0)==pUsart?0x00:0xFF;
-
-	volatile uint8_t * spin;
-
-	if (en)	{
-			gpio_set_pin_high(SP336_USART1_PIN_TX_ENABLE);
-			spin = &g_spin1;
-	} else {
-			gpio_set_pin_high(SP336_USART0_PIN_TX_ENABLE);
-			spin = &g_spin0;
-	}
-
-	*spin = 1;
-
-	uint8_t i = 0;
-	while(i<255) {
-		const uint8_t c = sz[i++];
-		if (0==c)
-		{
-			ret = AC_ERROR_OK;
-			break;
-		}
-		 
-		usart_putchar(pUsart,c);
-	}
-
-	while (!(*spin) == 0) {
-	}
-
-
-	if (en)	{
-		gpio_set_pin_low(SP336_USART1_PIN_TX_ENABLE);
-	} else {
-		gpio_set_pin_low(SP336_USART0_PIN_TX_ENABLE);
-	}
-
-	return ret;
-}
-*/
 
 void SP336_RX_Disable(USART_t * const pUsart)
 {	
@@ -163,18 +113,13 @@ RET_ERROR_CODE SP336_RegisterCallback(USART_t * const id,SP336_CALLBACK fn)
 static void __inline__ internal_HalfDuplex_0_IN(void)
 {
 	gpio_set_pin_high(SP336_USART0_PIN_TX_ENABLE);
-//	g_spin_flags |= 0b00000001;
-//	g_spin_0 = 0xFF;
 	SP336_USART0.STATUS |= 0b01000000;
 }
 
 static void __inline__ internal_HalfDuplex_1_IN(void)
 {
 	gpio_set_pin_high(SP336_USART1_PIN_TX_ENABLE);
-//	g_spin_flags |= 0b00000010;
-//	g_spin_1 = 0xFF;
 	SP336_USART1.STATUS |= 0b01000000;
-
 }
 
 #ifdef SP336_USART2
@@ -182,52 +127,35 @@ static void __inline__ internal_HalfDuplex_1_IN(void)
 static void __inline__ internal_HalfDuplex_2_IN(void)
 {
 	gpio_set_pin_high(SP336_USART2_PIN_TX_ENABLE);
-//	g_spin_flags |= 0b00000100;
-//	g_spin_2 = 0xFF;
 	SP336_USART2.STATUS |= 0b01000000;
-
 }
 #endif //SP336_USART2
 
 #ifdef SP336_USART3
-//static volatile	uint8_t g_spin3 = 0;
-
 static void __inline__ internal_HalfDuplex_3_IN(void)
 {
 	gpio_set_pin_high(SP336_USART3_PIN_TX_ENABLE);
-//	g_spin_flags |= 0b00001000;
-//	g_spin_3 = 0xFF;
 	SP336_USART3.STATUS |= 0b01000000;
-
 }
 #endif //SP336_USART3
 
 
 static void __inline__ internal_HalfDuplex_0_OUT(void)
 {
-//	while ((g_spin_flags & 0b00000001) != 0) { barrier(); };
-//	while (g_spin_0) { barrier(); };
 	while (!(SP336_USART0.STATUS & 0b01000000)) { barrier(); };
-	
 	gpio_set_pin_low(SP336_USART0_PIN_TX_ENABLE);
 }
 
 static void __inline__ internal_HalfDuplex_1_OUT(void)
 {
-	//while ((g_spin_flags & 0b00000010) != 0) { barrier(); };
-//	while (g_spin_1) { barrier(); };
 	while (!(SP336_USART1.STATUS & 0b01000000)) { barrier(); };
-	
 	gpio_set_pin_low(SP336_USART1_PIN_TX_ENABLE);
 }
 
 #ifdef SP336_USART2
 static void __inline__ internal_HalfDuplex_2_OUT(void)
 {
-//	while ((g_spin_flags & 0b00000100) != 0) { barrier(); };
-//	while (g_spin_2) { barrier(); };
 	while (!(SP336_USART2.STATUS & 0b01000000)) { barrier(); };
-
 	gpio_set_pin_low(SP336_USART2_PIN_TX_ENABLE);
 }
 #endif
@@ -235,8 +163,6 @@ static void __inline__ internal_HalfDuplex_2_OUT(void)
 #ifdef SP336_USART3
 static void __inline__ internal_HalfDuplex_3_OUT(void)
 {
-//	while ((g_spin_flags & 0b00001000) != 0) { barrier(); };
-
 	while (!(SP336_USART3.STATUS & 0b01000000)) { barrier(); };
 	gpio_set_pin_low(SP336_USART3_PIN_TX_ENABLE);
 }
@@ -277,7 +203,7 @@ RET_ERROR_CODE SP336_0_PutString(const char * const ps,const uint16_t len)
 RET_ERROR_CODE SP336_0_PutBuffer(const uint8_t * const pBuf,const uint16_t len)
 {
 	uint16_t i = 0;
-	usart_putchar(USART_DEBUG,'s');
+	//usart_putchar(USART_DEBUG,'s');
 #if (SP336_MODE==SP336_MODE_RS485_HALFDUP)
 	internal_HalfDuplex_0_IN();
 #endif
@@ -456,17 +382,17 @@ RET_ERROR_CODE SP336_3_PutBuffer(const uint8_t * const pBuf,const uint16_t len)
 		usart_putchar(&SP336_USART3,c);
 	}
 
-	{
-		uint8_t buf[8];
-		uint8_t i = 0;
-		for(;i<len;i++) {
-			uint8_t v = pBuf[i];
-			sprintf_P(buf, PSTR("%02X "),v);
-			debug_string(NORMAL,buf,RAM_STRING);
-		}
-
-		debug_string_1P(NORMAL,PSTR("\r\n"));
-	}
+	//{
+		//uint8_t buf[8];
+		//uint8_t i = 0;
+		//for(;i<len;i++) {
+			//uint8_t v = pBuf[i];
+			//sprintf_P(buf, PSTR("%02X "),v);
+			//debug_string(NORMAL,buf,RAM_STRING);
+		//}
+//
+		//debug_string_1P(NORMAL,PSTR("\r\n"));
+	//}
 
 
 #if (SP336_2_MODE==SP336_2_MODE_RS485_HALFDUP) || (SP336_2_MODE_MIXED_HALFDUP)
@@ -478,61 +404,3 @@ RET_ERROR_CODE SP336_3_PutBuffer(const uint8_t * const pBuf,const uint16_t len)
 
 #endif //SP336_USART2
 
-
-//#ifdef SP336_UART0_RX_CB
-//
-//ISR(SP336_USART0_RX_Vect)
-//{
-	//SP336_UART0_RX_CB(SP336_USART0.DATA);
-//}
-//
-//
-//#endif
-
-//
-//ISR(SP336_USART0_RX_Vect)
-//{
-	//if(NULL!=cb_usart0) cb_usart0(SP336_USART0.DATA);
-//}
-//
-//
-//ISR(SP336_USART1_RX_Vect)
-//{
- //
- 	//if(NULL!=cb_usart1) cb_usart1(SP336_USART1.DATA);
-//}
-//
-
-//#if (SP336_MODE==SP336_MODE_RS485_HALFDUP)
-//ISR(SP336_USART0_TX_Vect)
-//{
-////	g_spin_flags &= (~0b00000001);
-	//g_spin_0 = 0;
-//}
-//#endif
-//
-//#if (SP336_MODE==SP336_MODE_RS485_HALFDUP) || (SP336_MODE_MIXED_HALFDUP)
-//ISR(SP336_USART1_TX_Vect)
-//{
-////	g_spin_flags &= (~0b00000010);
-	//g_spin_1 = 0;
-//}
-//#endif
-//
-//#if defined(SP336_USART2) && (SP336_2_MODE==SP336_2_MODE_RS485_HALFDUP)
-//ISR(SP336_USART2_TX_Vect)
-//{
-	//usart_putchar(USART_DEBUG,'X');
-////	g_spin_flags &= (~0b00000100);
-	//g_spin_2 = 0;
-//}
-//#endif
-//
-//#if defined(SP336_USART3) && ((SP336_2_MODE==SP336_2_MODE_RS485_HALFDUP) || (SP336_2_MODE_MIXED_HALFDUP))
-//ISR(SP336_USART3_TX_Vect)
-//{
-	//usart_putchar(USART_DEBUG,'Y');
-////	g_spin_flags &= (~0b00001000);
-	//g_spin_3 = 0;
-//}
-//#endif

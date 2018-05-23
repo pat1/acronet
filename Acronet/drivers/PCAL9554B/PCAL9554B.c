@@ -56,7 +56,7 @@ static RET_ERROR_CODE PCAL9554B_internalRead(twi_package_t * ppak);
 
 static RET_ERROR_CODE PCAL9554B_internalWrite(twi_package_t * ppak)
 {
-	static const char __flash funName[] = "PCAL9554B_internalWrite";
+	static const __flash char funName[] = "PCAL9554B_internalWrite";
 	
 	//debug_string("Before write\r\n");
 	const status_code_t r = twi_master_write(PCAL9554B_TWI_PORT, ppak);

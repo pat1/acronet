@@ -51,13 +51,13 @@ bool  MODULE_METHOD_YIELD( void )
 		const uint8_t b = MBUS_GET_BYTE(MODULE_ISTANCE_CHAN);
 		if ( MBUS_STATUS_END == MBUS_BUILD_DGRAM(MODULE_ISTANCE_CHAN, &(MODULE_PRIVATE_DATA.pdu), b) )
 		{
-			usart_putchar(USART_DEBUG,'y');
+			//usart_putchar(USART_DEBUG,'y');
 
 			const uint16_t crcc = MBUS_GET_CRC(MODULE_ISTANCE_CHAN);
 			const uint16_t crcp =( (((uint16_t) MODULE_PRIVATE_DATA.pdu.crc_hi) << 8) | MODULE_PRIVATE_DATA.pdu.crc_lo );
 			if (crcc == crcp)
 			{
-				usart_putchar(USART_DEBUG,'u');
+				//usart_putchar(USART_DEBUG,'u');
 				interpret_pdu(&(MODULE_PRIVATE_DATA));
 				} else {
 				char szBUF[64];
@@ -101,7 +101,7 @@ void MODULE_METHOD_PERIODIC(void)
 		//debug_string_1P(NORMAL,PSTR("\r\n"));
 	//}
 
-	debug_string_1P(NORMAL,PSTR("HD3910 ISTANCE "BOOST_PP_STRINGIZE(ISTANCE_NUM)" LOCKS MBUS CHAN "BOOST_PP_STRINGIZE(MODULE_ISTANCE_CHAN)) );
+	//debug_string_1P(NORMAL,PSTR("HD3910 ISTANCE "BOOST_PP_STRINGIZE(ISTANCE_NUM)" LOCKS MBUS CHAN "BOOST_PP_STRINGIZE(MODULE_ISTANCE_CHAN)) );
 	memcpy_P(buf,cmd,8);
 	
 	MBUS_ISSUE_CMD(MODULE_ISTANCE_CHAN,buf,8);

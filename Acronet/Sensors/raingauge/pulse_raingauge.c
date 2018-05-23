@@ -59,7 +59,7 @@ static RET_ERROR_CODE internal_D2S_RMAP(	const uint8_t id
 	struct calendar_date dt;
 	calendar_timestamp_to_date(timeStamp,&dt);
 
-	static const char __flash fmt[][32] = {"/1,0,%d/1,-,-,-/B13011","/1,0,%d/103,2001,-,-/B13011"};
+	static const __flash char fmt[][32] = {"/1,0,%d/1,-,-,-/B13011","/1,0,%d/103,2001,-,-/B13011"};
 
 
 	int16_t len = snprintf_P(	szTopic,
@@ -120,7 +120,7 @@ RET_ERROR_CODE raingauge_Data2String_RMAP_aux(	uint8_t * const subModule
 
 static RET_ERROR_CODE internal_Data2String(const RAINGAUGE_DATA * const st,char * const sz, uint16_t * len_sz)
 {
-	static const char __flash fmt[18] = "&P=%u&S=%u";
+	static const __flash char fmt[] = "&P=%u&S=%u";
 	int16_t len = snprintf_P(sz,*len_sz,fmt,st->tips,st->maxSlope);
 
 	const RET_ERROR_CODE e = (len < *len_sz) ? AC_ERROR_OK : AC_BUFFER_OVERFLOW;

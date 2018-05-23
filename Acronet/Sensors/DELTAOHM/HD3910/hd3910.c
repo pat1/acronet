@@ -177,9 +177,9 @@ static void interpret_pdu(HD3910_PRIVATE_DATA * const pSelf)
 	}
 	
 	
-	char szBUF[64];
-	sprintf_P(szBUF,PSTR(" (%d , %d)\r\n"),dv.wvc,dv.temp);
-	debug_string(NORMAL,szBUF,RAM_STRING);
+	//char szBUF[64];
+	//sprintf_P(szBUF,PSTR(" (%d , %d)\r\n"),dv.wvc,dv.temp);
+	//debug_string(NORMAL,szBUF,RAM_STRING);
 
 	medianInsert(pSelf,dv);
 	pSelf->g_samples++;
@@ -193,11 +193,11 @@ static RET_ERROR_CODE hd3910_reset_data(HD3910_PRIVATE_DATA * const pSelf)
 	return AC_ERROR_OK;
 }
 
-RET_ERROR_CODE hd3910_Data2String(const HD3910_DATA * const st,char * const sz, uint16_t * const len_sz)
+RET_ERROR_CODE hd3910_Data2String(const HD3910_DATA * const st,char * const sz, size_t * const len_sz)
 {
 	const uint16_t samples = st->samples;
 	
-	uint16_t len = snprintf_P(sz,*len_sz,PSTR("&wvc=%u&wvt=%u&nSmp=%u"),st->wvc,st->temp,samples);
+	size_t len = snprintf_P(sz,*len_sz,PSTR("&wvc=%u&wvt=%u&nSmp=%u"),st->wvc,st->temp,samples);
 	
 	const RET_ERROR_CODE e = (len < *len_sz) ? AC_ERROR_OK : AC_BUFFER_OVERFLOW;
 	*len_sz = len;

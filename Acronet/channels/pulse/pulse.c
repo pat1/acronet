@@ -104,7 +104,7 @@ static void pulse_CH0_1(void)
 	pulse_CH0_2(epoch,millis,tbounce);
 	sync &= ~SYNCFLAG_CH0_DATAISLOCK;
 
-	usart_putchar(USART_DEBUG,'!');
+	//usart_putchar(USART_DEBUG,'!');
 
 }
 
@@ -123,7 +123,7 @@ static void pulse_CH0(void)
 	}
 	sync |= SYNCFLAG_CH0_INTERRUPT;
 
-	usart_putchar(USART_DEBUG,'^');
+	//usart_putchar(USART_DEBUG,'^');
 
 	pulse_CH0_1();
 	sync &= ~SYNCFLAG_CH0_INTERRUPT;
@@ -204,7 +204,7 @@ static void pulse_CH1_1(void)
 	sync |= SYNCFLAG_CH1_DATAISLOCK;
 	pulse_CH1_2(epoch,millis,tbounce);
 	sync &= ~SYNCFLAG_CH1_DATAISLOCK;
-	usart_putchar(USART_DEBUG,'*');
+	//usart_putchar(USART_DEBUG,'*');
 
 }
 
@@ -223,7 +223,7 @@ static void pulse_CH1(void)
 	}
 	sync |= SYNCFLAG_CH1_INTERRUPT;
 
-	usart_putchar(USART_DEBUG,'.');
+	//usart_putchar(USART_DEBUG,'.');
 	pulse_CH1_1();
 	sync &= ~SYNCFLAG_CH1_INTERRUPT;
 	

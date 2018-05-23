@@ -166,7 +166,7 @@ RET_ERROR_CODE hal_board_get_stats(char * const pSZ, uint16_t * const len)
 		{
 		}
 		v32 = ( (((uint32_t)ptb[1]) << 10) | (((uint32_t)ptb[2]) << 2) | ((ptb[3]>>6)&0x02) );
-		val = ( ( (((int16_t)ptb[4])<<8) | ptb[5] ) * 5) >> 7;
+		val = ( ( (((uint16_t)ptb[4])<<8) | ptb[5] ) * 5) >> 7;
 	} else {
 		if(AC_ERROR_OK != MPL3115A2_Write(0x26,0x00))
 		{

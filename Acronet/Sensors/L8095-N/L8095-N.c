@@ -197,9 +197,9 @@ RET_ERROR_CODE l8095n_Data2String_RMAP(	 uint8_t * const subModule
 
 #endif //RMAP_SERVICES
 
-RET_ERROR_CODE l8095n_Data2String(const L8095N_DATA * const st,char * const sz, uint16_t * const len_sz)
+RET_ERROR_CODE l8095n_Data2String(const L8095N_DATA * const st,char * const sz, size_t * const len_sz)
 {
-	uint16_t len = 0;
+	size_t len = 0;
 	char sBuf[12] = "&";
 
 	char * psz = sBuf;

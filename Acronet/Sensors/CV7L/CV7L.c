@@ -97,9 +97,9 @@ static const NMEA_FN_HANDLER tbl_NMEAfn[] PROGMEM = {
 	
 	
 
-RET_ERROR_CODE CV7L_Data2String(const CV7L_DATA * const st,char * const sz, uint16_t * const len_sz)
+RET_ERROR_CODE CV7L_Data2String(const CV7L_DATA * const st,char * const sz, size_t * const len_sz)
 {
-	uint16_t len = 0;
+	size_t len = 0;
 	char sBuf[12] = "&";
 
 	char * psz = sBuf;

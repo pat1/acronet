@@ -43,14 +43,14 @@
 #include "Acronet/services/fw_update/eeprom_manager.h"
 
 
-static const AT24CXX_iterator __flash ITER_FW_UPDA_BEG = {	  .byte[FLAG_BYTE] = 0 
+static const __flash AT24CXX_iterator ITER_FW_UPDA_BEG = {	  .byte[FLAG_BYTE] = 0 
 															, .byte[PAGE_BYTE] = 0 
 															, .byte[ MSB_BYTE] = 1 
 															, .byte[ LSB_BYTE] = 0   };
 														
-static const uint8_t __flash STR_FWDW[4] = {'F','W','D','W'};
-static const uint8_t __flash STR_UPDA[4] = {'U','P','D','A'};
-static const uint8_t __flash STR_FAIL[4] = {'F','A','I','L'};
+static const __flash uint8_t STR_FWDW[4] = {'F','W','D','W'};
+static const __flash uint8_t STR_UPDA[4] = {'U','P','D','A'};
+static const __flash uint8_t STR_FAIL[4] = {'F','A','I','L'};
 
 RET_ERROR_CODE em_init(EM_BUFFER * const g_emr, const uint8_t mode) 
 {

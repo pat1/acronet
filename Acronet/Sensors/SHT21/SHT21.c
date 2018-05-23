@@ -148,7 +148,7 @@ status_code_t SHT21_TriggerReadRH_hold(SHTVAL * val)
 
 static status_code_t SHT21_internalWrite(twi_package_t * ppak)
 {
-	static const char __flash funName[] = "SHT21_internalWrite";
+	static const __flash char funName[] = "SHT21_internalWrite";
 	//debug_string("Before write\r\n");
 	const status_code_t r = twi_master_write(AUX_TWI_PORT, ppak);
 	switch(r) {
@@ -197,7 +197,7 @@ static status_code_t SHT21_internalWrite(twi_package_t * ppak)
 
 static status_code_t SHT21_internalRead(twi_package_t * ppak)
 {
-	static const char __flash funName[] = "SHT21_internalRead";
+	static const __flash char funName[] = "SHT21_internalRead";
 
 	const status_code_t r = twi_master_read(AUX_TWI_PORT, ppak);
 	switch(r) {

@@ -174,16 +174,15 @@ static void interpret_pdu(T056_PRIVATE_DATA * const pSelf)
 	const float levl = interpret_pdu_cdab_float( &(pSelf->pdu.data.byte[0]) );
 	
 	if(levl==-9999.0F) {
-		debug_string_1P(NORMAL,PSTR("[WARNING] Invalid value"));
+		debug_string_1P(NORMAL,PSTR("[WARNING] T056 PDU Invalid value"));
 		return;
-	} else {
-		dv.levl = (int16_t) (levl*10);
-	}
+	} 
 	
+	dv.levl = (int16_t) (levl*10);
 	
-	char szBUF[64];
-	sprintf_P(szBUF,PSTR(" (%d)\r\n"),dv.levl);
-	debug_string(NORMAL,szBUF,RAM_STRING);
+	//char szBUF[64];
+	//sprintf_P(szBUF,PSTR(" (%d)\r\n"),dv.levl);
+	//debug_string(NORMAL,szBUF,RAM_STRING);
 
 	medianInsert(pSelf,dv);
 	pSelf->numSamples++;

@@ -41,7 +41,20 @@ static void METHOD_FUNCTION_NAME(DB_RECORD * const pRec)
 #define METHOD_FUNCTION_NAME BOOST_PP_CAT(MODULE_INTERFACE_DATA2STRING,METHOD_NAME_ISTANCE_TRAIL)
 static RET_ERROR_CODE  METHOD_FUNCTION_NAME(const DB_RECORD * const pRec,char * const sz, uint16_t * const len_sz)
 {
-	return MODULE_INTERFACE_DATA2STRING(&(pRec->MODULE_ISTANCE_DATA),sz,len_sz);
+	static const __flash char prolog[] = ";"BOOST_PP_STRINGIZE(MODULE_NAME)":"BOOST_PP_STRINGIZE(ISTANCE_NUM);
+	if ((*len_sz)<sizeof(prolog))
+	{
+		return AC_BUFFER_TOO_SMALL;
+	}
+	
+	strcat_P(sz,prolog);
+	*len_sz -= (sizeof(prolog)-1);
+	
+	const RET_ERROR_CODE e = MODULE_INTERFACE_DATA2STRING(&(pRec->MODULE_ISTANCE_DATA),sz+(sizeof(prolog)-1),len_sz);
+	
+	*len_sz += (sizeof(prolog)-1);
+	
+	return e;
 }
 #undef METHOD_FUNCTION_NAME
 #endif

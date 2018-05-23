@@ -218,13 +218,13 @@ static void dl_reset_data(void)
 	
 }
 
-static RET_ERROR_CODE dl_Data2String(    const DB_RECORD * const st ,char * const sz , int16_t * len_sz )
+static RET_ERROR_CODE dl_Data2String(    const DB_RECORD * const st ,char * const sz , size_t * len_sz )
 {
 	
 	#ifdef MQTT_AS_PRIMARY
-	int16_t len = snprintf_P(	sz,*len_sz ,PSTR("TIME=%lu") ,st->data_timestamp );
+	size_t len = snprintf_P(	sz,*len_sz ,PSTR("TIME=%lu") ,st->data_timestamp );
 	#else
-	int16_t len = snprintf_P(	sz,*len_sz ,PSTR("#TIME=%lu") ,st->data_timestamp );
+	size_t len = snprintf_P(	sz,*len_sz ,PSTR("#TIME=%lu") ,st->data_timestamp );
 	#endif
 	
 	
@@ -1409,7 +1409,7 @@ static RET_ERROR_CODE dl_RMAP_connData_init(char * const heap,uint16_t lenHeap)
 		return e;  
 	}
 
-	static const char __flash exid[]={'R','M','_'};
+	static const __flash char exid[]={'R','M','_'};
 	szClientID[0]=exid[0];
 	szClientID[1]=exid[1];
 	szClientID[2]=exid[2];
@@ -1898,8 +1898,8 @@ static void mem_dump(char * pMem,uint16_t len)
 
 	debug_string(NORMAL,PSTR("Memory dump image BEGIN\r\n\r\n\r\n\r\n"),PGM_STRING);
 
-	static const char __flash szSEP1[] = " %3d";
-	static const char __flash szSEP2[] = ",%3d";
+	static const __flash char szSEP1[] = " %3d";
+	static const __flash char szSEP2[] = ",%3d";
 	
 
 	uint16_t idx = 0;
@@ -2097,12 +2097,13 @@ RET_ERROR_CODE send_data_with_post( DL_SEND_PARAMS * const pPara )
 	cfg_find_item(CFG_TAG_DATALOGGER_SEND_URL,&f);
 	cfg_get_item_file(f,szBuf,128);
 
-	const int16_t lz = strnlen(szBuf,128)-1;
+	const size_t lz = strnlen(szBuf,128);
 	
+	szBuf[lz-1] = '2';
 	szBuf[lz] = 0;
 	
-	const int16_t post_data_start = lz+1;
-	int16_t post_data_end = post_data_start;
+	const size_t post_data_start = lz+1;
+	size_t post_data_end = post_data_start;
 
 	szBuf[post_data_end  ] = 'A';
 	szBuf[post_data_end+1] = 'W';
@@ -2151,7 +2152,7 @@ RET_ERROR_CODE send_data_with_post( DL_SEND_PARAMS * const pPara )
 			continue;
 		}
 
-		const int16_t pp = post_data_end;
+		const size_t pp = post_data_end;
 		
 		for(MODULE_ID  im=DL_MODULE_BEG;im<DL_MODULE_END;++im)
 		{
@@ -2164,7 +2165,7 @@ RET_ERROR_CODE send_data_with_post( DL_SEND_PARAMS * const pPara )
 				debug_string_1P(NORMAL,PSTR("[WARNING] Data2String is null, skip"));
 				continue;
 			}
-			int16_t lb = BUFFER_SIZE - post_data_end;
+			size_t lb = BUFFER_SIZE - post_data_end;
 			//if(AC_ERROR_OK == fn_stat2string( off+(uint8_t*)&ds , szBuf+post_data_end , &lb)) {
 			if(AC_ERROR_OK == fn_data2string( &ds,szBuf+post_data_end , &lb)) {
 				post_data_end += lb;

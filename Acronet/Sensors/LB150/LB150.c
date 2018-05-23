@@ -234,9 +234,9 @@ static const NMEA_FN_HANDLER tbl_NMEAfn[] PROGMEM = {
 												};
 	
 
-RET_ERROR_CODE LB150_Data2String(const LB150_DATA * const st,char * const sz, int16_t * const len_sz)
+RET_ERROR_CODE LB150_Data2String(const LB150_DATA * const st,char * const sz, size_t * const len_sz)
 {
-	int16_t len = 0;
+	size_t len = 0;
 	char sBuf[12] = "&";
 
 	char * psz = sBuf;

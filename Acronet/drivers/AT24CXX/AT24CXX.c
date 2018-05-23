@@ -71,7 +71,7 @@ static void TWI_report_error(twi_package_t * ppak)
 
 static RET_ERROR_CODE AT24CXX_internalWrite(twi_package_t * ppak)
 {
-	static const char __flash funName[] = "AT24CXX_internalWrite";
+	static const __flash char funName[] = "AT24CXX_internalWrite";
 	
 	//debug_string("Before write\r\n");
 	const status_code_t r = twi_master_write(EEPROM_TWI_PORT, ppak);

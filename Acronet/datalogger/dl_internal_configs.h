@@ -23,7 +23,7 @@
 
 static void dl_reset_data(void);
 static void dl_get_data(DB_RECORD * const);
-static RET_ERROR_CODE dl_Data2String(  const DB_RECORD * const,char * const,int16_t * );
+static RET_ERROR_CODE dl_Data2String(  const DB_RECORD * const,char * const,size_t * );
 
 
 /* Module interface */
@@ -35,7 +35,7 @@ typedef void           ( * RESETDATA     )(void);
 typedef void           ( * GETDATA       )(DB_RECORD * const st);
 typedef RET_ERROR_CODE ( * DATA2STRING   )(  const DB_RECORD * const st
 											,char * const sz
-											,int16_t * len_sz       );
+											,size_t * len_sz       );
 
 #ifdef RMAP_SERVICES
 typedef RET_ERROR_CODE ( * DATA2STRINGRMAP   )(  uint8_t * const subModule

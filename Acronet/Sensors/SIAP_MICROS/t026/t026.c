@@ -182,9 +182,9 @@ static void interpret_pdu(T026_PRIVATE_DATA * const pSelf)
 	}
 	
 	
-	char szBUF[64];
-	sprintf_P(szBUF,PSTR(" (%d , %d)\r\n"),dv.temp,dv.rh);
-	debug_string(NORMAL,szBUF,RAM_STRING);
+	//char szBUF[64];
+	//sprintf_P(szBUF,PSTR(" (%d , %d)\r\n"),dv.temp,dv.rh);
+	//debug_string(NORMAL,szBUF,RAM_STRING);
 
 	medianInsert(pSelf,dv);
 	pSelf->numSamples++;

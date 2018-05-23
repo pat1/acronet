@@ -799,7 +799,7 @@ RET_ERROR_CODE sim900_GPRS_check_line( void )
 RET_ERROR_CODE sim900_init( void )
 {
 	//DEBUG_PRINT_FUNCTION_NAME(VERBOSE,"SIM900_INIT");
-	static const char __flash funName[] = "SIM900_INIT";
+	static const __flash char funName[] = "SIM900_INIT";
 	char szBuf[64];
 
 	g_gprs_ref=0;
@@ -1110,7 +1110,7 @@ RET_ERROR_CODE sim900_get_APN_by_operator( char * const szAPN , uint16_t szAPNLe
 	char szBuf[512];
 	uint16_t len = 48;//sizeof(szBuf);
 
-	static const char __flash funName[] = "sim900_get_APN_by_operator";
+	static const __flash char funName[] = "sim900_get_APN_by_operator";
 
 	///////////////////////////////////////////////////////////////////////////////
 
@@ -1213,7 +1213,7 @@ RET_ERROR_CODE sim900_bearer_open( void )
 
 	//DEBUG_PRINT_FUNCTION_NAME(VERBOSE,"SIM900_BEARER_INIT");
 
-	static const char __flash funName[] = "SIM900_BEARER_INIT";
+	static const __flash char funName[] = "SIM900_BEARER_INIT";
 
 
 	//CHECK THE STATUS OF THE BEARER
