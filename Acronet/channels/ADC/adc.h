@@ -14,7 +14,7 @@
 #ifndef ADC_H_
 #define ADC_H_
 
-#define NMEA_PREP(p1,p2,...)			p1##p2(__VA_ARGS__)
+#define ADC_PREP(p1,p2,...)			p1##p2(__VA_ARGS__)
 
 
 

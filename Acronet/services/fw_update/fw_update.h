@@ -15,7 +15,7 @@
 #define FW_UPDATE_H_
 
 
-enum {MODE_FIRMWARE_UPDATE=0,MODE_CFG_UPDATE=1};
+enum {MODE_FIRMWARE_UPDATE=0,MODE_CONFIG_UPDATE=1};
 
 
 RET_ERROR_CODE fw_update_init(const char * pPara);

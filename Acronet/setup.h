@@ -56,6 +56,8 @@
 #include "Acronet/utils/station_setup/reach.h"
 #elif defined(STATION_SETUP_ZEUS)
 #include "Acronet/utils/station_setup/zeus.h"
+#elif defined(STATION_SETUP_MOGGIE)
+#include "Acronet/utils/station_setup/moggie.h"
 
 #else 
 #pragma message "No configuration defined, using defaults"

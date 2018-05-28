@@ -24,6 +24,7 @@
 #define MODULE_INTERFACE_GETDATA CV7L_get_data
 #define MODULE_INTERFACE_DATA2STRING CV7L_Data2String
 
+
 #ifndef CV7L_H_
 #define CV7L_H_
 

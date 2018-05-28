@@ -1142,7 +1142,7 @@ static RET_ERROR_CODE dl_cmd_cfg_update(const char * pPara)
 {
 	datalogger_stop();
 	fw_update_init(pPara);
-	fw_update_run(pPara,MODE_CFG_UPDATE);
+	fw_update_run(pPara,MODE_CONFIG_UPDATE);
 	
 	
 	

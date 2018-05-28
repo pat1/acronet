@@ -73,7 +73,7 @@ RET_ERROR_CODE em_flush( EM_BUFFER * const g_emr, const uint8_t mode )
 {
 	AT24CXX_iterator i = g_emr->it;
 
-	if (mode==MODE_CFG_UPDATE)
+	if (mode==MODE_CONFIG_UPDATE)
 	{
 		i.byte[LSB_BYTE]=0;
 		AT24CXX_iterator_report(i);
@@ -93,7 +93,7 @@ RET_ERROR_CODE em_flush( EM_BUFFER * const g_emr, const uint8_t mode )
 
 RET_ERROR_CODE em_close(const bool success, const uint8_t mode)
 {
-	if (mode==MODE_CFG_UPDATE)
+	if (mode==MODE_CONFIG_UPDATE)
 	{
 		return AC_ERROR_OK;
 	}

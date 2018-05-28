@@ -6,6 +6,8 @@
 #define MODULE_INTERFACE_GETDATA panel_get_data
 #define MODULE_INTERFACE_DATA2STRING panel_Data2String
 
+#define MODULE_CMD_FILTER ((panel_cmd,"PANEL_STATUS:"))
+
 #ifndef MODULE_PANEL_H_
 #define MODULE_PANEL_H_
 
