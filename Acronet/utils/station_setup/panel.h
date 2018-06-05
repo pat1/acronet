@@ -13,7 +13,7 @@
 #ifndef PANEL_H_
 #define PANEL_H_
 
-#define MODULE_DECLARATION ((MOD_ID_PANEL,1))
+#define MODULE_DECLARATION ((MOD_ID_PANEL,(0)))
 
 //#define MODBUS_CHAN_0	0
 //#define MODBUS_CHAN_1	0

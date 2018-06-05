@@ -221,11 +221,11 @@ static void dl_reset_data(void)
 static RET_ERROR_CODE dl_Data2String(    const DB_RECORD * const st ,char * const sz , size_t * len_sz )
 {
 	
-	#ifdef MQTT_AS_PRIMARY
+#ifdef MQTT_AS_PRIMARY
 	size_t len = snprintf_P(	sz,*len_sz ,PSTR("TIME=%lu") ,st->data_timestamp );
-	#else
+#else
 	size_t len = snprintf_P(	sz,*len_sz ,PSTR("#TIME=%lu") ,st->data_timestamp );
-	#endif
+#endif
 	
 	
 	const RET_ERROR_CODE e = (len < *len_sz) ? AC_ERROR_OK : AC_BUFFER_OVERFLOW;
@@ -1173,11 +1173,6 @@ static RET_ERROR_CODE dl_cmd_psw_update(const char * pPara)
 	
 	hal_psw_set(a);
 
-#ifdef SETUP_PANEL
-	PANEL_DATA d = {.status = a};
-	panel_set_data(&d);
-#endif
-
 invalid_psw:
 	return AC_ERROR_OK;
 }
@@ -1228,7 +1223,17 @@ static RET_ERROR_CODE dl_task_cmd_check_2(char * const pBuf,uint16_t lenBuf)
 		pBuf[lenBuf]=0;
 		err = dl_cmd_psw_update(pBuf+11);
 
-	} else 	if(0==strncasecmp_P(pBuf,PSTR("KO"),2)){
+	} else
+	
+#define BOOST_PP_ITERATION_LIMITS (0,BOOST_PP_SEQ_SIZE(MODULE_DECLARATION)-1)
+#define BOOST_PP_FILENAME_1       "Acronet/datalogger/modinst/generators/mod_cmd_check.h"
+#include BOOST_PP_ITERATE()
+
+#undef BOOST_PP_ITERATION_LIMITS
+#undef BOOST_PP_FILENAME_1
+
+	
+	if(0==strncasecmp_P(pBuf,PSTR("KO"),2)){
 		debug_string_1P(VERBOSE,PSTR("\t[WARNING] Server returned a KO message\r\n"));
 	} else {
 		debug_string_1P(VERBOSE,PSTR("\t[WARNING] Server returned an unknown statement\r\n"));
