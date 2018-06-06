@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "Acronet/globals.h"
 #include "Acronet/services/config/config.h"
+#include "Acronet/HAL/hal_interface.h"
 
 
 #include "Acronet/Sensors/PANEL/panel.h"
@@ -27,6 +28,8 @@ RET_ERROR_CODE panel_get_data(const PANEL_DATA * const pSelf,PANEL_DATA * const 
 
 static void panel_set_data(PANEL_DATA * const ps)
 {
+		hal_psw_set(ps->status);
+		panel_data.status = ps->status;
 }
 
 void panel_reset_data(void)
@@ -61,27 +64,26 @@ RET_ERROR_CODE panel_Data2String(const PANEL_DATA * const st,char * const sz, si
 RET_ERROR_CODE panel_cmd(const  const char * const pPara)
 {
 	
-	uint8_t a = 0;
+	PANEL_DATA a = { .status=0 };
 	for(uint8_t idx=0;idx<4;++idx)
 	{
 		const char c = pPara[idx];
 		if(c==0) goto invalid_psw;
 		if (c!='0')
 		{
-			a |= (((uint8_t)1)<<(3-idx));
+			a.status |= (((uint8_t)1)<<(3-idx));
 		}
 	}
 		
 	char szBuf[32];
-	int v = a;
+	int v = a.status;
 	sprintf_P(szBuf,PSTR("\t->\t%d\r\n\r\n"),v);
 		
 	debug_string_1P(NORMAL,PSTR("\r\n\r\nPANEL_UPDATE: ---> "));
 	debug_string(NORMAL,pPara,RAM_STRING);
 	debug_string(NORMAL,szBuf,RAM_STRING);
 		
-	//hal_psw_set(a);
-	panel_data.status = a;
+	panel_set_data(&a);
 	
 invalid_psw:
 	return AC_ERROR_OK;
