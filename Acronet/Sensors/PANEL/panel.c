@@ -56,7 +56,7 @@ RET_ERROR_CODE panel_Data2String(const PANEL_DATA * const st,char * const sz, si
 	sz[7] = (st->status & 1) ? '1' : '0';
 	sz[8] = 0;
 
-	*len_sz = 9;
+	*len_sz = 8;
 
 	return AC_ERROR_OK;
 }

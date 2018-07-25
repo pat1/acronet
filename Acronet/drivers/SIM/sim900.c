@@ -1207,7 +1207,7 @@ RET_ERROR_CODE sim900_bearer_open( void )
 {
 
 	const char * szRet = NULL;
-	char szBuf[64];
+	char szBuf[128];
 	uint16_t len = sizeof(szBuf);
 	uint8_t i;
 
@@ -1269,30 +1269,57 @@ RET_ERROR_CODE sim900_bearer_open( void )
 	
 
 	sim900_get_APN_by_operator(szBuf,sizeof(szBuf));
+	
+	char * pStr[3];
+	pStr[0]=szBuf;
+	uint8_t cp=0;
 
-
-	//Set the APN
-	for (i=0;i<2;i++)
+	for(i=1;i<sizeof(szBuf)-1;i++)
 	{
-		LITTLE_DELAY;
-		sim900_put_string(PSTR("AT+SAPBR=3,1,\"APN\",\""),PGM_STRING);
-		sim900_put_string(szBuf,RAM_STRING);
-		sim900_put_string(PSTR("\"\r\n"),PGM_STRING);
-		szRet=sim900_wait_retstring();
-
-		if (sz_OK==szRet)
-		{
-			break;
+		const char c = szBuf[i];
+		if(c==0) break;
+		if(c==',') {
+			pStr[++cp] = szBuf + i;
+			if(cp == 2) break;
 		}
-		else if(NULL==szRet)
-		{
-			continue;
-		}
+	}
 
-		//Something went wrong with the sapbr query, we exit from the init function
-		debug_string_2P(NORMAL,funName,PSTR("the SAPBR=3,1,\"APN\""  \
-								" query went wrong, procedure aborted\r\n"));
-		return AC_SIM900_COMM_ERROR;
+
+	static const __flash char szAPN[] = "APN";
+	static const __flash char szUsr[] = "USER";
+	static const __flash char szPwd[] = "PWD";
+
+	static const __flash char * const idxSz = {szAPN,szUsr,szPwd};
+
+	for(uint8_t j=0;j<cp;++j)
+	{
+		
+		//Set the APN
+		for (i=0;i<2;i++)
+		{
+			LITTLE_DELAY;
+			sim900_put_string(PSTR("AT+SAPBR=3,1,\""),PGM_STRING);
+			sim900_put_string(idxSz[j],PGM_STRING);
+			sim900_put_string(PSTR("\",\""),PGM_STRING);
+			sim900_put_string(pStr[j],RAM_STRING);
+			sim900_put_string(PSTR("\"\r\n"),PGM_STRING);
+			szRet=sim900_wait_retstring();
+
+			if (sz_OK==szRet)
+			{
+				break;
+			}
+			else if(NULL==szRet)
+			{
+				continue;
+			}
+
+			//Something went wrong with the sapbr query, we exit from the init function
+			debug_string_2P(NORMAL,funName,PSTR("the SAPBR=3,1,\""));
+			debug_string_2P(NORMAL,funName,idxSz[j]);
+			debug_string_2P(NORMAL,funName,PSTR("\" query went wrong, procedure aborted\r\n"));
+			return AC_SIM900_COMM_ERROR;
+		}
 	}
 
 

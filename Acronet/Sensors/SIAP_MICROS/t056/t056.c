@@ -200,7 +200,7 @@ RET_ERROR_CODE t056_Data2String(const T056_DATA * const st,char * const sz, uint
 {
 	const uint16_t samples = st->samples;
 	
-	uint16_t len = snprintf_P(sz,*len_sz,PSTR("&RN=%u&nSmp=%u"),st->levl,samples);
+	uint16_t len = snprintf_P(sz,*len_sz,PSTR("&RN=%d&nSmp=%u"),st->levl,samples);
 	
 	const RET_ERROR_CODE e = (len < *len_sz) ? AC_ERROR_OK : AC_BUFFER_OVERFLOW;
 	*len_sz = len;
