@@ -194,4 +194,10 @@ RET_ERROR_CODE hal_board_get_stats(char * const pSZ, uint16_t * const len)
 	return AC_ERROR_OK;
 }
 
+bool hal_sim_get_status(void)
+{
+	return gpio_pin_is_high(GPRS_STATUS);
+}
+
+
 #endif /* HAL_BOARD_IMPL_H_ */

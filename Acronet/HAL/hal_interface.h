@@ -44,7 +44,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#if defined(BOARD_ACROSTATION_V4R01)
+#if defined(BOARD_ACROSTATION_V4R02C)
+#include "Acronet/HAL/board_version/V04R02C.h"
+#elif defined(BOARD_ACROSTATION_V4R01)
 #include "Acronet/HAL/board_version/V04R01.h"
 #elif defined(BOARD_ACROSTATION_V3R02)
 #include "Acronet/HAL/board_version/V03R02.h"

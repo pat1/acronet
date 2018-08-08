@@ -529,7 +529,7 @@ RET_ERROR_CODE dl_init( void )
 		fn_Init();
 	}
 
-	dl_test_now();
+//	dl_test_now();
 
 
 /**************************/
@@ -3489,7 +3489,7 @@ static void atest(void)
 
 static void dl_test_now(void)
 {
-	//dl_test_sim900_terminal();
+	dl_test_sim900_terminal();
 	return;
 	//char sz[256];
 	//
