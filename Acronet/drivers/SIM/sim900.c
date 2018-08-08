@@ -114,7 +114,7 @@ static void sim900_power_toggle(void)
 
 void sim900_power_off(void)
 {
-	const bool status = gpio_pin_is_high(GPRS_STATUS);
+	const bool status = hal_sim_get_status();
 	if(true==status) {
 		debug_string_2P(NORMAL,PSTR("sim900_power_off") ,PSTR("module is ON so power cycling"));
 		sim900_power_toggle();
@@ -125,7 +125,7 @@ void sim900_power_off(void)
 													
 void sim900_power_on(void)
 {
-	const bool status = gpio_pin_is_high(GPRS_STATUS);
+	const bool status = hal_sim_get_status();
 	if(true!=status) {
 		debug_string_2P(NORMAL,PSTR("sim900_power_on") ,PSTR("module is OFF so power cycling"));
 		sim900_power_toggle();
@@ -910,9 +910,9 @@ RET_ERROR_CODE sim900_init( void )
 
 	LOG_say(szBuf);
 
-	szBuf[i] = '\r';
-	szBuf[i+1] = '\n';
-	szBuf[i+2] = 0;
+	szBuf[i+5] = '\r';
+	szBuf[i+6] = '\n';
+	szBuf[i+7] = 0;
 	debug_string(NORMAL,szBuf,RAM_STRING);
 
 	if(szRET!=sz_OK) {
