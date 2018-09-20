@@ -1195,9 +1195,9 @@ RET_ERROR_CODE sim900_get_APN_by_operator( char * const szAPN , uint16_t szAPNLe
 	//cfg_new_get_file(fd,szAPN,sizeof(szAPN));
 	//	cfg_get_gprs_apn(szBuf,szAPN,sizeof(szAPN));
 
-	//debug_string_1P(VERBOSE,PSTR("Using APN "));
-	//debug_string(VERBOSE,szAPN,RAM_STRING);
-	//debug_string_1P(VERBOSE,g_szCRLF);
+	debug_string_1P(VERBOSE,PSTR("Using APN "));
+	debug_string(VERBOSE,szAPN,RAM_STRING);
+	debug_string_1P(VERBOSE,g_szCRLF);
 	
 	return AC_ERROR_OK;
 	
@@ -1269,7 +1269,13 @@ RET_ERROR_CODE sim900_bearer_open( void )
 	
 
 	sim900_get_APN_by_operator(szBuf,sizeof(szBuf));
-	
+
+#ifdef SIM_APN_AUTH
+
+//BEWARE
+//THIS CODE DOESN'T WORK
+//
+ 
 	char * pStr[3];
 	pStr[0]=szBuf;
 	uint8_t cp=0;
@@ -1321,7 +1327,34 @@ RET_ERROR_CODE sim900_bearer_open( void )
 			return AC_SIM900_COMM_ERROR;
 		}
 	}
+#else
 
+	//Set the APN
+	for (i=0;i<2;i++)
+	{
+		LITTLE_DELAY;
+		sim900_put_string(PSTR("AT+SAPBR=3,1,\"APN\",\""),PGM_STRING);
+		sim900_put_string(szBuf,RAM_STRING);
+		sim900_put_string(PSTR("\"\r\n"),PGM_STRING);
+		szRet=sim900_wait_retstring();
+
+		if (sz_OK==szRet)
+		{
+			break;
+		}
+		else if(NULL==szRet)
+		{
+			continue;
+		}
+
+		//Something went wrong with the sapbr query, we exit from the init function
+		debug_string_2P(NORMAL,funName,PSTR("the SAPBR=3,1,\"APN\""  \
+		" query went wrong, procedure aborted\r\n"));
+		return AC_SIM900_COMM_ERROR;
+	}
+
+
+#endif
 
 	//Finally open the bearer
 	LITTLE_DELAY;

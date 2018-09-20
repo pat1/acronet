@@ -58,6 +58,8 @@
 #include "Acronet/utils/station_setup/zeus.h"
 #elif defined(STATION_SETUP_MOGGIE)
 #include "Acronet/utils/station_setup/moggie.h"
+#elif defined(STATION_SETUP_ROSSELLI)
+#include "Acronet/utils/station_setup/rosselli.h"
 
 #else 
 #pragma message "No configuration defined, using defaults"

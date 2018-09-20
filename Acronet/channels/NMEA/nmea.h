@@ -25,7 +25,7 @@ uint8_t NMEA_Line_checksum_check(char * const psz,const uint8_t len_sz);
 #define NMEA_LINE_DISABLE_TX(ch)				NMEA_PREP( NMEA_Line_disable_TX_CH , ch )
 #define NMEA_LINE_RESET(ch)						NMEA_PREP( NMEA_Line_reset_CH , ch )
 #define NMEA_LINE_GETCHAR(ch)					NMEA_PREP( NMEA_Line_getChar_CH	, ch )
-#define NMEA_LINE_PUTSTRING(ch,psz,len)				NMEA_PREP( NMEA_Line_putStr_CH , ch , len )
+#define NMEA_LINE_PUTSTRING(ch,psz,len)			NMEA_PREP( NMEA_Line_putStr_CH , ch , psz, len )
 
 //#define NMEA_LINE_CHECKSUM_CHECK(ch,psz,len_sz)	NMEA_PREP( NMEA_Line_checksum_check_CH , ch , psz , len_sz )
 
