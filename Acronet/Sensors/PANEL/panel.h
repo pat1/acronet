@@ -8,6 +8,7 @@
 #define MODULE_INTERFACE_RESET panel_reset_data
 #define MODULE_INTERFACE_GETDATA panel_get_data
 #define MODULE_INTERFACE_DATA2STRING panel_Data2String
+#define MODULE_INTERFACE_PERIODIC panel_periodic
 
 #define MODULE_CMD_FILTER (panel_cmd,"PANEL_STATUS:")
 

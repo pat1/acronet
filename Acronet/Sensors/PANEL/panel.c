@@ -13,9 +13,20 @@
 
 static PANEL_DATA panel_data;
 
+static void panel_set_data(PANEL_DATA * const ps)
+{
+	hal_psw_set(ps->status);
+	panel_data.status = ps->status;
+}
+
 
 RET_ERROR_CODE panel_init(PANEL_DATA * const pSelf)
 {
+	ioport_set_port_mode(IOPORT_PORTB,0b01111000, IOPORT_MODE_TOTEM | IOPORT_MODE_PULLUP | IOPORT_DIR_INPUT | IOPORT_MODE_SLEW_RATE_LIMIT);
+	panel_data.status = ioport_get_port_level(IOPORT_PORTB,0b01111000) >> 3 ;
+
+	panel_set_data(&panel_data);
+
 	return AC_ERROR_OK;
 }
 
@@ -26,11 +37,6 @@ RET_ERROR_CODE panel_get_data(const PANEL_DATA * const pSelf,PANEL_DATA * const 
 	pDest->status = pSelf->status;
 }
 
-static void panel_set_data(PANEL_DATA * const ps)
-{
-		hal_psw_set(ps->status);
-		panel_data.status = ps->status;
-}
 
 void panel_reset_data(void)
 {
