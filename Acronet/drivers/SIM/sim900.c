@@ -781,9 +781,9 @@ RET_ERROR_CODE sim900_GPRS_check_line( void )
 
 	sprintf_P(szBuf,PSTR("CSQ=%d"),lq);
 	LOG_say(szBuf);
-	//debug_string_P(NORMAL,PSTR("(sim900_GPRS_check_line) CSQ = "));
-	//debug_string(NORMAL,szBuf,RAM_STRING);
-	//debug_string_P(NORMAL,g_szCRLF);
+	//debug_string_1P(NORMAL,PSTR("(sim900_GPRS_check_line) CSQ = "));
+	debug_string(NORMAL,szBuf,RAM_STRING);
+	debug_string_1P(NORMAL,g_szCRLF);
 
 
 	if(lq==99) {
@@ -879,7 +879,7 @@ RET_ERROR_CODE sim900_init( void )
 		debug_string_2P(NORMAL,funName,PSTR("this sim900 doesn't support AT+GSN"));
 	}
 
-/*
+///////////////////////////////////////////////////////////////////////////////////////
 	{
 		uint16_t i=sizeof(szBuf)-10;
 		memcpy_P(szBuf,PSTR("SIM MODEL="),10);
@@ -901,7 +901,7 @@ RET_ERROR_CODE sim900_init( void )
 		debug_string(NORMAL,szBuf,RAM_STRING);
 		debug_string(NORMAL,g_szCRLF,PGM_STRING);
 	}
-*/
+//////////////////////////////////////////////////////////////////////////////////////
 	uint16_t i=sizeof(szBuf)-5;
 	memcpy_P(szBuf,PSTR("IMEI="),5);
 	LITTLE_DELAY;

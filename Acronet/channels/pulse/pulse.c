@@ -104,7 +104,7 @@ static void pulse_CH0_1(void)
 	pulse_CH0_2(epoch,millis,tbounce);
 	sync &= ~SYNCFLAG_CH0_DATAISLOCK;
 
-	//usart_putchar(USART_DEBUG,'!');
+	usart_putchar(USART_DEBUG,'!');
 
 }
 

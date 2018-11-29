@@ -48,4 +48,4 @@
 #define VP61_VOLTMETER_PIN_POS		ADCCH_POS_PIN4
 #define VP61_VOLTMETER_PIN_NEG		ADCCH_POS_PIN0
 
-#endif /* DEPANIS_H_ */
+#endif /* REACH_H_ */
