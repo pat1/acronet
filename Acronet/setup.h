@@ -16,7 +16,9 @@
 
 
 //STATION_SETUP
-#if defined(STATION_SETUP_BRANCA)
+#if defined(STATION_SETUP_BLIGNY)
+#include "Acronet/utils/station_setup/bligny.h"
+#elif defined(STATION_SETUP_BRANCA)
 #include "Acronet/utils/station_setup/branca.h"
 #elif defined(STATION_SETUP_BONINI)
 #include "Acronet/utils/station_setup/bonini.h"
