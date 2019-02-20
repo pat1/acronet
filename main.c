@@ -53,7 +53,7 @@ int main (void)
 	//Setting this variable we can decide the amount of info to send
 	//at the Debug facility. Compiling the firmware in Release may
 	//disable it
-	g_log_verbosity = VERBOSE;
+	g_log_verbosity = VERBOSE; //NORMAL;
 
 
 	/* Initialize the board.

@@ -3695,8 +3695,8 @@ looppp:
 		//AT24CXX_iterator_report(g_log_iter_beg);
 		//AT24CXX_iterator_report(g_log_iter_end);
 		
-		AT24CXX_iterator b = { .plain = LOG_EEPROM_PARTITION_BEGIN };
-		AT24CXX_iterator e = { .plain = LOG_EEPROM_PARTITION_END };
+		//AT24CXX_iterator b = { .plain = LOG_EEPROM_PARTITION_BEGIN };
+		//AT24CXX_iterator e = { .plain = LOG_EEPROM_PARTITION_END };
 		//DB_dump(b,e);
 		dl_MQTT_sendFromDatastore_2(DATASTORE_LOG);
 		//DB_dump(b,e);

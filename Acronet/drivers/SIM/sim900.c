@@ -720,13 +720,19 @@ RET_ERROR_CODE sim900_GPRS_check_line( void )
 	sim900_put_string(PSTR("AT+CREG?\r\n"),PGM_STRING);
 
 	sim900_read_string(szBuf,&l);
+	//debug_string(NORMAL,szBuf,RAM_STRING);
+	
 	if(strncasecmp_P(szBuf,PSTR("+CREG:"),5)!=0) {
 		debug_string_2P(NORMAL,PSTR("sim900_GPRS_check_line") ,PSTR("device is not answering as it should at CREG command"));
 		return AC_SIM900_COMM_ERROR;
 	}
-	if(szBuf[9]!='1') {
+	if((szBuf[9]!='1') && (szBuf[9]!='5')) {
 		debug_string_2P(NORMAL,PSTR("sim900_GPRS_check_line") ,PSTR("device not (yet) registered on the network"));
 		return AC_SIM900_LINE_NOT_REGISTERED;
+	}
+
+	if(szBuf[9]=='5') {
+		debug_string_2P(NORMAL,PSTR("sim900_GPRS_check_line") ,PSTR("device registered with ROAMING"));
 	}
 
 	LITTLE_DELAY;
@@ -902,6 +908,9 @@ RET_ERROR_CODE sim900_init( void )
 		debug_string(NORMAL,g_szCRLF,PGM_STRING);
 	}
 //////////////////////////////////////////////////////////////////////////////////////
+
+	
+
 	uint16_t i=sizeof(szBuf)-5;
 	memcpy_P(szBuf,PSTR("IMEI="),5);
 	LITTLE_DELAY;
@@ -1102,111 +1111,261 @@ RET_ERROR_CODE sim900_bearer_simple_release(void)
 	return AC_ERROR_OK;
 }
 
+typedef struct  
+{
+	uint16_t mcc;
+	uint8_t  mnclen;	
+} MCC_MNCLEN;
 
+static const __flash MCC_MNCLEN tab_mcc_mnclen[] = 
+{ 
+	{222, 2}, //Italy
+	{234, 2}, //UK
+	{250, 2}, //Russia
+	{276, 2}, //Albania
+	{342, 3}, //Barbados
+	{344, 3}, //Antigua Barbuda
+	{352, 3}, //Grenada
+	{360, 3} //St Vincent
+//	{0,0}    //END
+};
 
-RET_ERROR_CODE sim900_get_APN_by_operator( char * const szAPN , uint16_t szAPNLen )
+static RET_ERROR_CODE mcc_mnclen_query(const uint16_t mcc, uint8_t * const pMncLen)
 {
 	
-	char szBuf[512];
-	uint16_t len = 48;//sizeof(szBuf);
+	for (uint16_t i = 0; i<(sizeof(tab_mcc_mnclen) / sizeof(MCC_MNCLEN));++i)
+	{
+		
+		if ( tab_mcc_mnclen[i].mcc == mcc)
+		{
+			*pMncLen = tab_mcc_mnclen[i].mnclen;
+			return AC_ERROR_OK;
+		}
+	}
+	
+	return AC_ITEM_NOT_FOUND;
+}
+
+
+static RET_ERROR_CODE sim900_query_mcc_mnc_to_simcard(char szBuf[],uint16_t * const pLen)
+{
+		static const __flash char funName[] = "sim900_query_mcc_mnc_to_simcard";
+
+		char myBuf[32];
+		uint16_t myLen = sizeof(myBuf);
+
+		LITTLE_DELAY;
+		sim900_cmd_with_read_string(PSTR("AT+CIMI\r\n"),PGM_STRING,myBuf,&myLen);
+		sim900_wait_retstring();
+
+
+		char tb = myBuf[3];
+		myBuf[3] = 0;
+		
+		const uint16_t mcc = atoi(myBuf);
+		myBuf[3] = tb;
+
+		//char ab[16];
+		//itoa(mcc,ab,10);
+		//debug_string(NORMAL,PSTR("MCC is "),PGM_STRING);
+		//debug_string(NORMAL,ab,RAM_STRING);
+		
+		uint8_t lenMNC = 0;
+		
+		RET_ERROR_CODE err = mcc_mnclen_query(mcc,&lenMNC);
+
+		if (AC_ERROR_OK!=err)
+		{
+			debug_string_1P(NORMAL,PSTR("MCC code not present in the firmware table"));
+			return err;
+		}
+
+		szBuf[0] = myBuf[0];
+		szBuf[1] = myBuf[1];
+		szBuf[2] = myBuf[2];
+		szBuf[3] = '_';
+		szBuf[4] = myBuf[3];
+		szBuf[5] = myBuf[4];
+		if (lenMNC>2)
+		{
+			szBuf[6] = myBuf[5];
+			szBuf[7] = 0;
+		} else {
+			szBuf[6] = 0;
+		}
+
+		//debug_string(NORMAL,PSTR("MCC MNC are : "),PGM_STRING);
+		//debug_string(NORMAL,szBuf,RAM_STRING);
+		
+		return AC_ERROR_OK;
+	
+}
+
+/*
+static RET_ERROR_CODE sim900_query_mcc_mnc_to_network(char * szBuf,uint16_t * const pLen)
+{
+		static const __flash char funName[] = "sim900_query_mcc_mnc_to_network";
+
+		///////////////////////////////////////////////////////////////////////////////
+
+		//CHECK THE CODE OF THE OPERATOR
+
+		LITTLE_DELAY;
+		if(sz_OK!=sim900_cmd_with_retstring(PSTR("AT+CENG=1\r\n"),PGM_STRING))
+		{
+			debug_string_2P(NORMAL,funName,PSTR("the AT+CENG=1 query went wrong, procedure aborted"));
+			return AC_SIM900_COMM_ERROR;
+		}
+
+		LITTLE_DELAY;
+
+
+		RET_ERROR_CODE err = sim900_CMD_wait_URC(PSTR("AT+CENG?\r\n"),PSTR("+CENG:"), szBuf,pLen);
+
+		if (err!=AC_ERROR_OK)
+		{
+			return err;
+		}
+
+		*pLen = 48;
+		sim900_read_stream(szBuf,pLen,true);
+
+		uint16_t iy=0;
+		uint16_t ix=0;
+		uint8_t coms = 4;
+
+		while(ix<(*pLen)-1)
+		{
+			const char c = szBuf[ix++];
+			if (c==',')
+			{
+				coms--;
+			}
+			
+			if(coms==0) {
+				break;
+			}
+		}
+
+		while(ix<(*pLen)-1)
+		{
+			const char c = szBuf[ix++];
+			if (c==',')
+			{
+				szBuf[iy++] = '_';
+				break;
+			}
+
+			szBuf[iy++] = c;
+		}
+
+		while(ix<(*pLen)-1)
+		{
+			const char c = szBuf[ix++];
+			if (c==',')
+			{
+				break;
+			}
+			szBuf[iy++] = c;
+		}
+
+		szBuf[iy] = 0;
+		
+		///////////////////////////////////////////////////////////////////////////////
+}
+*/
+
+RET_ERROR_CODE sim900_get_APN_by_operator( char szAPN[] , uint16_t szAPNLen )
+{
+	
+	char sz[64];
+	uint16_t len = sizeof(sz);
 
 	static const __flash char funName[] = "sim900_get_APN_by_operator";
 
-	///////////////////////////////////////////////////////////////////////////////
-
-	//CHECK THE CODE OF THE OPERATOR
-
-	LITTLE_DELAY;
-	if(sz_OK!=sim900_cmd_with_retstring(PSTR("AT+CENG=1\r\n"),PGM_STRING))
-	{
-		debug_string_2P(NORMAL,funName,PSTR("the AT+CENG=1 query went wrong, procedure aborted"));
-		return AC_SIM900_COMM_ERROR;
-	}
-
-	LITTLE_DELAY;
+///////////////
 
 
-	RET_ERROR_CODE err = sim900_CMD_wait_URC(PSTR("AT+CENG?\r\n"),PSTR("+CENG:"), szBuf,&len);
+	//RET_ERROR_CODE err = sim900_query_mcc_mnc_to_network(sz,&len);
+	RET_ERROR_CODE err = sim900_query_mcc_mnc_to_simcard(sz,&len);
+
 
 	if (err!=AC_ERROR_OK)
 	{
 		return err;
 	}
 
-	len = 48;
-	sim900_read_stream(szBuf,&len,true);
-
-	uint16_t iy=0;
-	uint16_t ix=0;
-	uint8_t coms = 4;
-
-	while(ix<len-1)
-	{
-		const char c = szBuf[ix++]; 
-		if (c==',')
-		{
-			coms--;
-		}
-	
-		if(coms==0) {
-			break;
-		}
-	}
-
-	while(ix<len-1)
-	{
-		const char c = szBuf[ix++];
-		if (c==',')
-		{
-			szBuf[iy++] = '_';
-			break;
-		}
-
-		szBuf[iy++] = c;
-	}
-
-	while(ix<len-1)
-	{
-		const char c = szBuf[ix++]; 
-		if (c==',')
-		{
-			break;
-		}
-		szBuf[iy++] = c;
-	}
-
-	szBuf[iy] = 0;
-	
-	///////////////////////////////////////////////////////////////////////////////
 
 	debug_string_2P(NORMAL,funName,PSTR("OPERATOR is : "));
-	debug_string(  NORMAL,szBuf,RAM_STRING);
+	debug_string(  NORMAL,sz,RAM_STRING);
 	debug_string_1P(NORMAL,g_szCRLF);
 	
 	CFG_ITEM_ADDRESS fd;
 	
 	cfg_find_item(CFG_TAG_SIM_APN_LIST_ADDRESS,&fd);
 
-	if(AC_ERROR_OK != cfg_get_item_dictionary(fd,szBuf,szAPN,szAPNLen))
+	if(AC_ERROR_OK != cfg_get_item_dictionary(fd,sz,szAPN,szAPNLen))
 	{
-		szAPN[0] = 0;
-		strcat_P(szAPN,PSTR("internet"));
+		debug_string_1P(NORMAL,PSTR("Didn't get any valid APN, defaulting to \"internet\""));
+		strcpy_P(szAPN,PSTR("internet"));
 	}
-	//cfg_new_get_file(fd,szAPN,sizeof(szAPN));
-	//	cfg_get_gprs_apn(szBuf,szAPN,sizeof(szAPN));
 
 	debug_string_1P(VERBOSE,PSTR("Using APN "));
 	debug_string(VERBOSE,szAPN,RAM_STRING);
 	debug_string_1P(VERBOSE,g_szCRLF);
+
 	
 	return AC_ERROR_OK;
 	
 }
 
+static RET_ERROR_CODE sim900_set_APN(void)
+{
+	char szAPN[128];
+
+	sim900_get_APN_by_operator(szAPN,sizeof(szAPN));
+
+
+//	sprintf_P(szBuf,PSTR("stack: %x\r\n"), (((uint16_t) SPH) << 8) + SPL);
+//	debug_string(NORMAL,szBuf,RAM_STRING);
+
+
+	debug_string_1P(VERBOSE,PSTR("Using APN "));
+	debug_string(VERBOSE,szAPN,RAM_STRING);
+	debug_string_1P(VERBOSE,g_szCRLF);
+	
+	//Set the APN
+	for (uint8_t i=0;i<2;i++)
+	{
+		LITTLE_DELAY;
+		sim900_put_string(PSTR("AT+SAPBR=3,1,\"APN\",\""),PGM_STRING);
+		sim900_put_string(szAPN,RAM_STRING);
+		sim900_put_string(PSTR("\"\r\n"),PGM_STRING);
+		const char * const szRet=sim900_wait_retstring();
+
+		if (sz_OK==szRet)
+		{
+			break;
+		}
+		else if(NULL==szRet)
+		{
+			continue;
+		}
+
+		//Something went wrong with the sapbr query, we exit from the init function
+		debug_string_2P(NORMAL,PSTR("sim900_set_APN"),PSTR("the SAPBR=3,1,\"APN\""  \
+		" query went wrong, procedure aborted\r\n"));
+		return AC_SIM900_COMM_ERROR;
+	}
+
+	return AC_ERROR_OK;
+}
+
+
 RET_ERROR_CODE sim900_bearer_open( void )
 {
 
-	const char * szRet = NULL;
+//	const char * szRet = NULL;
 	char szBuf[128];
 	uint16_t len = sizeof(szBuf);
 	uint8_t i;
@@ -1225,29 +1384,24 @@ RET_ERROR_CODE sim900_bearer_open( void )
 		return err;
 	}
 	
-	szRet = sim900_wait_retstring();
-
-
 	//debug_string_1P(VERBOSE,PSTR("Bearer is : "));
 	//debug_string(  VERBOSE,szBuf,RAM_STRING);
 	//debug_string_1P(VERBOSE,g_szCRLF);
-
 	
 	//check if the OK was at the end of the answer and
 	//the status of the bearer
 	
-	if(sz_OK!=szRet) { //Something went wrong with the sapbr query, we exit from the init function
+	if(sz_OK!=sim900_wait_retstring()) { //Something went wrong with the sapbr query, we exit from the init function
 		debug_string_2P(NORMAL,funName,PSTR("the SAPBR #2 query went wrong, procedure aborted"));
 		return AC_SIM900_COMM_ERROR;
 	}
 	
 
+
 	//check if the bearer is not closed 
 	if (strncasecmp_P(szBuf,PSTR("+SAPBR: 1,3,\"0.0.0.0\""),11)!=0)
 	{
-
-		const char r = szBuf[10];
-		if(r=='2') { //this bearer is closing
+		if(szBuf[10]=='2') { //this bearer is closing
 			debug_string_2P(NORMAL,funName,PSTR("(WARNING) bearer is in closing status"));
 			return AC_SIM900_RESOURCE_UNAVAILABLE;
 		} else {
@@ -1266,100 +1420,104 @@ RET_ERROR_CODE sim900_bearer_open( void )
 		return AC_SIM900_COMM_ERROR;
 		
 	}
+
+
+	err = sim900_set_APN();
+	if (AC_ERROR_OK != err)
+	{
+		return err;
+	}
 	
 
-	sim900_get_APN_by_operator(szBuf,sizeof(szBuf));
-
-#ifdef SIM_APN_AUTH
+//#ifdef SIM_APN_AUTH
 
 //BEWARE
 //THIS CODE DOESN'T WORK
 //
  
-	char * pStr[3];
-	pStr[0]=szBuf;
-	uint8_t cp=0;
-
-	for(i=1;i<sizeof(szBuf)-1;i++)
-	{
-		const char c = szBuf[i];
-		if(c==0) break;
-		if(c==',') {
-			pStr[++cp] = szBuf + i;
-			if(cp == 2) break;
-		}
-	}
-
-
-	static const __flash char szAPN[] = "APN";
-	static const __flash char szUsr[] = "USER";
-	static const __flash char szPwd[] = "PWD";
-
-	static const __flash char * const idxSz = {szAPN,szUsr,szPwd};
-
-	for(uint8_t j=0;j<cp;++j)
-	{
-		
-		//Set the APN
-		for (i=0;i<2;i++)
-		{
-			LITTLE_DELAY;
-			sim900_put_string(PSTR("AT+SAPBR=3,1,\""),PGM_STRING);
-			sim900_put_string(idxSz[j],PGM_STRING);
-			sim900_put_string(PSTR("\",\""),PGM_STRING);
-			sim900_put_string(pStr[j],RAM_STRING);
-			sim900_put_string(PSTR("\"\r\n"),PGM_STRING);
-			szRet=sim900_wait_retstring();
-
-			if (sz_OK==szRet)
-			{
-				break;
-			}
-			else if(NULL==szRet)
-			{
-				continue;
-			}
-
-			//Something went wrong with the sapbr query, we exit from the init function
-			debug_string_2P(NORMAL,funName,PSTR("the SAPBR=3,1,\""));
-			debug_string_2P(NORMAL,funName,idxSz[j]);
-			debug_string_2P(NORMAL,funName,PSTR("\" query went wrong, procedure aborted\r\n"));
-			return AC_SIM900_COMM_ERROR;
-		}
-	}
-#else
+	//char * pStr[3];
+	//pStr[0]=szBuf;
+	//uint8_t cp=0;
+//
+	//for(i=1;i<sizeof(szBuf)-1;i++)
+	//{
+		//const char c = szBuf[i];
+		//if(c==0) break;
+		//if(c==',') {
+			//pStr[++cp] = szBuf + i;
+			//if(cp == 2) break;
+		//}
+	//}
+//
+//
+	//static const __flash char szAPN[] = "APN";
+	//static const __flash char szUsr[] = "USER";
+	//static const __flash char szPwd[] = "PWD";
+//
+	//static const __flash char * const idxSz = {szAPN,szUsr,szPwd};
+//
+	//for(uint8_t j=0;j<cp;++j)
+	//{
+		//
+		////Set the APN
+		//for (i=0;i<2;i++)
+		//{
+			//LITTLE_DELAY;
+			//sim900_put_string(PSTR("AT+SAPBR=3,1,\""),PGM_STRING);
+			//sim900_put_string(idxSz[j],PGM_STRING);
+			//sim900_put_string(PSTR("\",\""),PGM_STRING);
+			//sim900_put_string(pStr[j],RAM_STRING);
+			//sim900_put_string(PSTR("\"\r\n"),PGM_STRING);
+			//const char * const szRet=sim900_wait_retstring();
+//
+			//if (sz_OK==szRet)
+			//{
+				//break;
+			//}
+			//else if(NULL==szRet)
+			//{
+				//continue;
+			//}
+//
+			////Something went wrong with the sapbr query, we exit from the init function
+			//debug_string_2P(NORMAL,funName,PSTR("the SAPBR=3,1,\""));
+			//debug_string_2P(NORMAL,funName,idxSz[j]);
+			//debug_string_2P(NORMAL,funName,PSTR("\" query went wrong, procedure aborted\r\n"));
+			//return AC_SIM900_COMM_ERROR;
+		//}
+	//}
+//#else
 
 	//Set the APN
-	for (i=0;i<2;i++)
-	{
-		LITTLE_DELAY;
-		sim900_put_string(PSTR("AT+SAPBR=3,1,\"APN\",\""),PGM_STRING);
-		sim900_put_string(szBuf,RAM_STRING);
-		sim900_put_string(PSTR("\"\r\n"),PGM_STRING);
-		szRet=sim900_wait_retstring();
+	//for (i=0;i<2;i++)
+	//{
+		//LITTLE_DELAY;
+		//sim900_put_string(PSTR("AT+SAPBR=3,1,\"APN\",\""),PGM_STRING);
+		//sim900_put_string(szAPN,RAM_STRING);
+		//sim900_put_string(PSTR("\"\r\n"),PGM_STRING);
+		//const char * const szRet=sim900_wait_retstring();
+//
+		//if (sz_OK==szRet)
+		//{
+			//break;
+		//}
+		//else if(NULL==szRet)
+		//{
+			//continue;
+		//}
+//
+		////Something went wrong with the sapbr query, we exit from the init function
+		//debug_string_2P(NORMAL,funName,PSTR("the SAPBR=3,1,\"APN\""  \
+		//" query went wrong, procedure aborted\r\n"));
+		//return AC_SIM900_COMM_ERROR;
+	//}
 
-		if (sz_OK==szRet)
-		{
-			break;
-		}
-		else if(NULL==szRet)
-		{
-			continue;
-		}
 
-		//Something went wrong with the sapbr query, we exit from the init function
-		debug_string_2P(NORMAL,funName,PSTR("the SAPBR=3,1,\"APN\""  \
-		" query went wrong, procedure aborted\r\n"));
-		return AC_SIM900_COMM_ERROR;
-	}
-
-
-#endif
+//#endif
 
 	//Finally open the bearer
 	LITTLE_DELAY;
-	szRet = sim900_cmd_with_retstring(PSTR("AT+SAPBR=1,1\r\n"),PGM_STRING);
-	if(sz_OK!=szRet)
+	if(sz_OK!=sim900_cmd_with_retstring(PSTR("AT+SAPBR=1,1\r\n"),PGM_STRING))
 	{
 		//Something went wrong with the sapbr query, we exit from the init function
 		debug_string_2P(NORMAL,funName,PSTR("the SAPBR=1,1"  \
@@ -1382,8 +1540,6 @@ RET_ERROR_CODE sim900_bearer_open( void )
 		}
 
 		
-		szRet = sim900_wait_retstring();
-
 		//debug_string_1P(VERBOSE,PSTR("Bearer is : "));
 		//debug_string(VERBOSE,szBuf,RAM_STRING);
 		//debug_string_1P(VERBOSE,g_szCRLF);
@@ -1392,7 +1548,7 @@ RET_ERROR_CODE sim900_bearer_open( void )
 		//check if the OK was at the end of the answer and
 		//the status of the bearer
 	
-		if(sz_OK!=szRet) { //Something went wrong with the sapbr query, we exit from the init function
+		if(sz_OK!=sim900_wait_retstring()) { //Something went wrong with the sapbr query, we exit from the init function
 			debug_string_2P(NORMAL,funName,PSTR("the SAPBR query went wrong, procedure aborted"));
 			return AC_SIM900_COMM_ERROR;
 		}
