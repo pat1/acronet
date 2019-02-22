@@ -1014,6 +1014,20 @@ RET_ERROR_CODE sim900_init( void )
 		debug_string_2P(NORMAL,funName,PSTR("AT+CCID GOT OK"));
 	}
 
+	{
+		uint16_t i=sizeof(szBuf)-5;
+		memcpy_P(szBuf,PSTR("IMSI="),5);
+		LITTLE_DELAY;
+		sim900_cmd_with_read_string(PSTR("AT+CIMI\r\n"),PGM_STRING,szBuf+5,&i);
+		sim900_wait_retstring();
+
+		LOG_say(szBuf);
+
+		debug_string(NORMAL,szBuf,RAM_STRING);
+		debug_string(NORMAL,g_szCRLF,PGM_STRING);
+	}
+
+
 	LITTLE_DELAY;
 	sim900_put_string(PSTR("AT+CIPMUX=1\r\n"),PGM_STRING);
 	szRET = sim900_wait_retstring();
