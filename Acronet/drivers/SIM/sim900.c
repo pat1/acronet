@@ -1140,7 +1140,8 @@ static const __flash MCC_MNCLEN tab_mcc_mnclen[] =
 	{342, 3}, //Barbados
 	{344, 3}, //Antigua Barbuda
 	{352, 3}, //Grenada
-	{360, 3} //St Vincent
+	{360, 3}, //St Vincent
+	{605, 2}  //Tunisia
 //	{0,0}    //END
 };
 

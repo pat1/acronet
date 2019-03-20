@@ -35,11 +35,14 @@ static volatile uint8_t sync = 0;
 
 
 #ifdef USES_PULSE_CHAN_0
-static volatile PULSE_CHAN_STATISTICS s0 = {0};
+static volatile PULSE_CHAN_STATISTICS s0;
 
 void pulse_init_CH0(void)
 {
 	ioport_configure_pin(IOPORT_CREATE_PIN(PORTR,0), IOPORT_TOTEM | IOPORT_DIR_INPUT | IOPORT_SRL_ENABLED | IOPORT_PULL_DOWN | IOPORT_FALLING );
+	
+	memset(&s0,0,sizeof(PULSE_CHAN_STATISTICS));
+	sync &= ~(SYNCFLAG_CH0_INTERRUPT | SYNCFLAG_CH0_DATAISDIRT | SYNCFLAG_CH0_DATAISLOCK);
 
 	PORT_ConfigureInterrupt0( &PORTR, PORT_INT0LVL_LO_gc, 0x01 );
 	sleepmgr_lock_mode(SLEEPMGR_IDLE);
@@ -71,7 +74,7 @@ static void pulse_CH0_2(const uint32_t epoch, const uint16_t millis, const uint1
 		s0.firstPulseEpoch = epoch;
 		s0.firstPulseMillis = millis;
 		s0.minDT = tbounce;
-		} else {
+	} else {
 		if(tbounce < s0.minDT) {
 			s0.minDT = tbounce;
 		}
@@ -139,12 +142,15 @@ ISR(PORTR_INT0_vect)
 #endif
 
 #ifdef USES_PULSE_CHAN_1
-static volatile PULSE_CHAN_STATISTICS s1 = {0};
+static volatile PULSE_CHAN_STATISTICS s1;
 
 void pulse_init_CH1(void)
 {
 	ioport_configure_pin(IOPORT_CREATE_PIN(PORTR,1), IOPORT_DIR_INPUT | IOPORT_TOTEM | IOPORT_SRL_ENABLED | IOPORT_PULL_DOWN | IOPORT_FALLING );
-	
+
+	memset(&s1,0,sizeof(PULSE_CHAN_STATISTICS));
+	sync &= ~(SYNCFLAG_CH1_INTERRUPT | SYNCFLAG_CH1_DATAISDIRT | SYNCFLAG_CH1_DATAISLOCK);
+
 	PORT_ConfigureInterrupt1( &PORTR, PORT_INT1LVL_LO_gc,  0x02 );
 	sleepmgr_lock_mode(SLEEPMGR_IDLE);
 }
