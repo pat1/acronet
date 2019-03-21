@@ -240,7 +240,7 @@ RET_ERROR_CODE t026_Data2String_RMAP(	 uint8_t * const subModule
 
 	*len_szTopic = len;
 
-	const int32_t vf = 337.4F - ((((float)st->v)*0.385410621F) - 125.2959954F);
+	const int32_t vf = 337.4F - ((((float)st->temp)*0.385410621F) - 125.2959954F);
 
 	len = snprintf_P(	szMessage,
 						*len_szMessage,

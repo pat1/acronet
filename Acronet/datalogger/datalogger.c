@@ -2484,7 +2484,7 @@ static RET_ERROR_CODE send_data_with_RMAP_serialize(	 DB_RECORD * const pDS
 					
 			if(AC_ERROR_OK == fn_data2stringRMAP(	 &subModule
 													,pDS
-													,pDS->dl_data.data_timestamp
+													,pDS->data_timestamp
 													,g_timing.task_store
 													,szTopic+lenTopicPreamble
 													,&lenSZTopic
@@ -2553,7 +2553,7 @@ static bool send_data_with_RMAP_browse_queue( DL_RMAP_SEND_PARAMS * const pPara	
 		DB_iterator_moveback(&(pPara->iter_send),1);
 		DB_get_record( &(pPara->iter_send), &(pPara->ds) );
 		
-		if ( (pPara->ds.dl_data.data_timestamp) < (pPara->dt_end) )
+		if ( (pPara->ds.data_timestamp) < (pPara->dt_end) )
 		{
 			debug_string_1P(NORMAL,PSTR("*** Minimum date reached ***"));
 			return false;
